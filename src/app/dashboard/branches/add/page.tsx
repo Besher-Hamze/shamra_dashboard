@@ -45,7 +45,7 @@ export default function AddBranchPage() {
             </div>
 
             {/* Form Container */}
-            <div className="card max-w-6xl">
+            <div className="card max-w-full">
                 <BranchForm
                     onSubmit={handleSubmit}
                     onCancel={handleCancel}

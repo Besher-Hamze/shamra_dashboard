@@ -73,7 +73,7 @@ export default function EditBranchPage() {
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">تعديل الفرع</h1>
                         <p className="text-gray-600 mt-1">
-                            تعديل بيانات فرع "{branch.nameAr}"
+                            تعديل بيانات فرع "{branch.name}"
                         </p>
                     </div>
                 </div>

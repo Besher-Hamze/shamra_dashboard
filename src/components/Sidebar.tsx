@@ -33,7 +33,7 @@ const navigation: SidebarItem[] = [
   { name: 'المنتجات', href: '/dashboard/products', icon: ShoppingBag },
   { name: 'الطلبات', href: '/dashboard/orders', icon: ShoppingCart },
   { name: 'العملاء', href: '/dashboard/customers', icon: Users },
-  { name: 'المخزون', href: '/dashboard/inventory', icon: Package },
+  // { name: 'المخزون', href: '/dashboard/inventory', icon: Package },
   { name: 'الفروع', href: '/dashboard/branches', icon: Building2 },
   { name: 'التقارير', href: '/dashboard/reports', icon: BarChart3 },
   { name: 'الإشعارات', href: '/dashboard/notifications', icon: Bell, badge: 3 },

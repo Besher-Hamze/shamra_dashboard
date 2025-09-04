@@ -79,7 +79,7 @@ export default function BranchDetailsPage() {
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">تفاصيل الفرع</h1>
                         <p className="text-gray-600 mt-1">
-                            عرض تفاصيل فرع "{branch.nameAr}"
+                            عرض تفاصيل فرع "{branch.name}"
                         </p>
                     </div>
                 </div>
@@ -118,24 +118,16 @@ export default function BranchDetailsPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label className="text-sm font-medium text-gray-500">اسم الفرع (عربي)</label>
-                                <p className="mt-1 text-gray-900 font-medium">{branch.nameAr}</p>
-                            </div>
-                            <div>
-                                <label className="text-sm font-medium text-gray-500">اسم الفرع (إنجليزي)</label>
                                 <p className="mt-1 text-gray-900 font-medium">{branch.name}</p>
-                            </div>
-                            <div>
-                                <label className="text-sm font-medium text-gray-500">كود الفرع</label>
-                                <p className="mt-1 text-gray-900 font-mono">{branch.code}</p>
                             </div>
                             <div>
                                 <label className="text-sm font-medium text-gray-500">الحالة</label>
                                 <p className="mt-1">{getStatusBadge(branch.isActive, branch.isMainBranch)}</p>
                             </div>
-                            {branch.descriptionAr && (
+                            {branch.description && (
                                 <div className="md:col-span-2">
                                     <label className="text-sm font-medium text-gray-500">الوصف</label>
-                                    <p className="mt-1 text-gray-900">{branch.descriptionAr}</p>
+                                    <p className="mt-1 text-gray-900">{branch.description}</p>
                                 </div>
                             )}
                         </div>
@@ -160,21 +152,9 @@ export default function BranchDetailsPage() {
                                     <label className="text-sm font-medium text-gray-500">المدينة</label>
                                     <p className="mt-1 text-gray-900">{branch.address?.city}</p>
                                 </div>
-                                <div>
-                                    <label className="text-sm font-medium text-gray-500">المنطقة</label>
-                                    <p className="mt-1 text-gray-900">{branch.address?.state || 'غير محدد'}</p>
-                                </div>
+
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="text-sm font-medium text-gray-500">الرمز البريدي</label>
-                                    <p className="mt-1 text-gray-900">{branch.address?.zipCode || 'غير محدد'}</p>
-                                </div>
-                                <div>
-                                    <label className="text-sm font-medium text-gray-500">البلد</label>
-                                    <p className="mt-1 text-gray-900">{branch.address?.country}</p>
-                                </div>
-                            </div>
+
                         </div>
                     </div>
 
@@ -189,12 +169,33 @@ export default function BranchDetailsPage() {
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {Object.entries(branch.operatingHours).map(([day, hours]) => (
-                                    <div key={day} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
-                                        <span className="text-gray-600 capitalize">{day}:</span>
-                                        <span className="font-medium">{(hours as any).open} - {(hours as any).close}</span>
-                                    </div>
-                                ))}
+                                {Object.entries(branch.operatingHours)
+                                    .filter(([day]) => !['_id', 'id'].includes(day))
+                                    .filter(([_, hours]) => (hours as any)?.open && (hours as any)?.close)
+                                    .map(([day, hours]) => (
+                                        <div key={day} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
+                                            <span className="text-gray-600 capitalize">
+                                                {(() => {
+                                                    // Optionally localize day names here if needed
+                                                    switch (day) {
+                                                        case 'saturday': return 'السبت';
+                                                        case 'sunday': return 'الأحد';
+                                                        case 'monday': return 'الاثنين';
+                                                        case 'tuesday': return 'الثلاثاء';
+                                                        case 'wednesday': return 'الأربعاء';
+                                                        case 'thursday': return 'الخميس';
+                                                        case 'friday': return 'الجمعة';
+                                                        default: return day;
+                                                    }
+                                                })()}:
+                                            </span>
+                                            <span className="font-medium">
+                                                {(hours as any).open === 'closed' || (hours as any).close === 'closed'
+                                                    ? 'مغلق'
+                                                    : `${(hours as any).open} - ${(hours as any).close}`}
+                                            </span>
+                                        </div>
+                                    ))}
                             </div>
                         </div>
                     )}
@@ -227,22 +228,6 @@ export default function BranchDetailsPage() {
                                     <div>
                                         <label className="text-xs text-gray-500">البريد الإلكتروني</label>
                                         <p className="text-gray-900 font-medium">{branch.email}</p>
-                                    </div>
-                                </div>
-                            )}
-                            {branch.website && (
-                                <div className="flex items-center space-x-3 space-x-reverse">
-                                    <Globe className="h-5 w-5 text-gray-400" />
-                                    <div>
-                                        <label className="text-xs text-gray-500">الموقع الإلكتروني</label>
-                                        <a
-                                            href={branch.website}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-blue-600 hover:text-blue-800 font-medium"
-                                        >
-                                            {branch.website}
-                                        </a>
                                     </div>
                                 </div>
                             )}
@@ -285,7 +270,7 @@ export default function BranchDetailsPage() {
                             هل أنت متأكد من حذف الفرع؟
                         </h3>
                         <p className="text-gray-600 mb-6">
-                            سيتم حذف فرع "{branch.nameAr}" نهائياً ولا يمكن التراجع عن هذا الإجراء.
+                            سيتم حذف فرع "{branch.name}" نهائياً ولا يمكن التراجع عن هذا الإجراء.
                         </p>
                         <div className="flex justify-center space-x-3 space-x-reverse">
                             <button

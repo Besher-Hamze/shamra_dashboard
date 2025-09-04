@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Upload, X } from 'lucide-react';
-import { useCreateCategory, useUpdateCategory, useCategories } from '@/hooks/useCategories';
+import { useCreateCategory, useUpdateCategory, useCreateCategoryWithImage, useUpdateCategoryWithImage, useCategories } from '@/hooks/useCategories';
 import { Category } from '@/types';
 
 interface CategoryFormProps {
@@ -14,20 +14,20 @@ interface CategoryFormProps {
 export default function CategoryForm({ category, onSuccess, onCancel }: CategoryFormProps) {
     const [formData, setFormData] = useState({
         name: '',
-        nameAr: '',
         description: '',
-        descriptionAr: '',
-        slug: '',
         image: '',
-        icon: '',
-        parentId: '',
         sortOrder: '',
         isActive: true,
         isFeatured: false,
     });
 
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string>('');
+
     const createCategoryMutation = useCreateCategory();
     const updateCategoryMutation = useUpdateCategory();
+    const createCategoryWithImageMutation = useCreateCategoryWithImage();
+    const updateCategoryWithImageMutation = useUpdateCategoryWithImage();
 
     // Get categories for parent selection
     const { data: categoriesData } = useCategories({ rootOnly: true });
@@ -36,17 +36,16 @@ export default function CategoryForm({ category, onSuccess, onCancel }: Category
         if (category) {
             setFormData({
                 name: category.name || '',
-                nameAr: category.nameAr || '',
                 description: category.description || '',
-                descriptionAr: category.descriptionAr || '',
-                slug: category.slug || '',
                 image: category.image || '',
-                icon: category.icon || '',
-                parentId: category.parentId || '',
                 sortOrder: category.sortOrder?.toString() || '',
                 isActive: category.isActive ?? true,
                 isFeatured: category.isFeatured ?? false,
             });
+            // Set existing image as preview if available
+            if (category.image) {
+                setImagePreview(category.image);
+            }
         }
     }, [category]);
 
@@ -71,29 +70,71 @@ export default function CategoryForm({ category, onSuccess, onCancel }: Category
         }
     };
 
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setImageFile(file);
+
+            // Create preview URL
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                setImagePreview(e.target?.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const removeImage = () => {
+        setImageFile(null);
+        setImagePreview('');
+        setFormData(prev => ({ ...prev, image: '' }));
+
+        // Reset file input
+        const fileInput = document.getElementById('imageFile') as HTMLInputElement;
+        if (fileInput) {
+            fileInput.value = '';
+        }
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
         const categoryData = {
             ...formData,
             sortOrder: formData.sortOrder ? parseInt(formData.sortOrder) : undefined,
-            parentId: formData.parentId || undefined,
             image: formData.image || undefined,
-            icon: formData.icon || undefined,
         };
 
         if (category) {
-            updateCategoryMutation.mutate(
-                { id: category.id, data: categoryData },
-                { onSuccess }
-            );
+            // Update existing category
+            if (imageFile) {
+                updateCategoryWithImageMutation.mutate(
+                    { id: category.id, categoryData, imageFile },
+                    { onSuccess }
+                );
+            } else {
+                updateCategoryMutation.mutate(
+                    { id: category.id, data: categoryData },
+                    { onSuccess }
+                );
+            }
         } else {
-            createCategoryMutation.mutate(categoryData, { onSuccess });
+            // Create new category
+            if (imageFile) {
+                createCategoryWithImageMutation.mutate(
+                    { categoryData, imageFile },
+                    { onSuccess }
+                );
+            } else {
+                createCategoryMutation.mutate(categoryData, { onSuccess });
+            }
         }
     };
 
-    const isLoading = createCategoryMutation.isPending || updateCategoryMutation.isPending;
-    const error = createCategoryMutation.error || updateCategoryMutation.error;
+    const isLoading = createCategoryMutation.isPending || updateCategoryMutation.isPending ||
+        createCategoryWithImageMutation.isPending || updateCategoryWithImageMutation.isPending;
+    const error = createCategoryMutation.error || updateCategoryMutation.error ||
+        createCategoryWithImageMutation.error || updateCategoryWithImageMutation.error;
 
 
 
@@ -127,33 +168,69 @@ export default function CategoryForm({ category, onSuccess, onCancel }: Category
             </div>
 
 
-            {/* Image and Icon */}
+            {/* Image Upload */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-2">
-                        رابط الصورة
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        صورة الفئة
                     </label>
-                    <input
-                        type="url"
-                        id="image"
-                        name="image"
-                        value={formData.image}
-                        onChange={handleInputChange}
-                        className="input-field"
-                        placeholder="https://example.com/category-image.jpg"
-                    />
-                    {formData.image && (
-                        <div className="mt-2">
-                            <img
-                                src={formData.image}
-                                alt="Category preview"
-                                className="w-20 h-20 object-cover rounded-lg border"
-                                onError={(e) => {
-                                    (e.target as HTMLImageElement).style.display = 'none';
-                                }}
+
+                    {/* File Upload */}
+                    <div className="space-y-4">
+                        <div className="flex items-center space-x-4 space-x-reverse">
+                            <input
+                                type="file"
+                                id="imageFile"
+                                accept="image/*"
+                                onChange={handleImageChange}
+                                className="hidden"
                             />
+                            <label
+                                htmlFor="imageFile"
+                                className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            >
+                                <Upload className="w-4 h-4 ml-2" />
+                                اختر صورة
+                            </label>
+
+                            {/* URL Input as alternative */}
+                            <div className="flex-1">
+                                <input
+                                    type="url"
+                                    name="image"
+                                    value={formData.image}
+                                    onChange={handleInputChange}
+                                    className="input-field"
+                                    placeholder="أو أدخل رابط الصورة"
+                                />
+                            </div>
                         </div>
-                    )}
+
+                        {/* Image Preview */}
+                        {(imagePreview || formData.image) && (
+                            <div className="relative inline-block">
+                                <img
+                                    src={imagePreview || formData.image}
+                                    alt="Category preview"
+                                    className="w-32 h-32 object-cover rounded-lg border"
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).style.display = 'none';
+                                    }}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={removeImage}
+                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+                        )}
+
+                        <p className="text-sm text-gray-500">
+                            يمكنك رفع صورة من جهازك أو إدخال رابط صورة
+                        </p>
+                    </div>
                 </div>
             </div>
 

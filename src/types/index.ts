@@ -49,9 +49,7 @@ export interface AuthResponse {
 export interface Address {
     street: string;
     city: string;
-    state?: string;
-    zipCode?: string;
-    country: string;
+
     coordinates?: {
         lat: number;
         lng: number;
@@ -69,13 +67,9 @@ export interface OperatingHours {
 export interface Branch {
     id: string;
     name: string;
-    nameAr: string;
     description?: string;
-    descriptionAr?: string;
-    code: string;
     phone?: string;
     email?: string;
-    website?: string;
     address: Address;
     isActive: boolean;
     isMainBranch: boolean;
@@ -89,15 +83,8 @@ export interface Branch {
 export interface Category {
     id: string;
     name: string;
-    nameAr: string;
     description?: string;
-    descriptionAr?: string;
-    slug: string;
     image?: string;
-    icon?: string;
-    parentId?: string;
-    parent?: Category;
-    children?: Category[];
     subCategories?: SubCategory[];
     sortOrder?: number;
     isActive: boolean;
@@ -111,6 +98,7 @@ export interface SubCategory {
     id: string;
     name: string;
     categoryId: string;
+    image?: string
     category?: Category;
     isActive: boolean;
     createdAt: string;
@@ -135,11 +123,6 @@ export interface SubCategoryQueryParams extends BaseQueryParams {
 }
 
 // Product types
-export interface ProductDimensions {
-    length: number;
-    width: number;
-    height: number;
-}
 
 export enum ProductStatus {
     ACTIVE = 'active',
@@ -153,11 +136,11 @@ export interface Product {
     description?: string;
     barcode?: string;
     price: number;
-    costPrice?: number;
+    costPrice: number;
     salePrice?: number;
     currency: string;
     stockQuantity: number;
-    minStockLevel?: number;
+    minStockLevel: number;
     categoryId: string;
     category?: Category;
     subCategoryId?: string;
@@ -167,13 +150,14 @@ export interface Product {
     images: string[];
     mainImage?: string;
     brand?: string;
+    specifications?: Record<string, any>;
     status: ProductStatus;
     isActive: boolean;
     isFeatured: boolean;
     isOnSale: boolean;
     tags: string[];
-    keywords?: string[];
-    sortOrder?: number;
+    keywords: string[];
+    sortOrder: number;
     createdAt: string;
     updatedAt: string;
 }
@@ -183,17 +167,18 @@ export interface CreateProductData {
     description?: string;
     barcode?: string;
     price: number;
-    costPrice?: number;
+    costPrice: number;
     salePrice?: number;
-    currency: string;
-    stockQuantity: number;
+    currency?: string;
+    stockQuantity?: number;
     minStockLevel?: number;
     categoryId: string;
     subCategoryId?: string;
-    branches: string[];
+    branches?: string[];
     images?: string[];
     mainImage?: string;
     brand?: string;
+    specifications?: Record<string, any>;
     status?: ProductStatus;
     isActive?: boolean;
     isFeatured?: boolean;
@@ -201,6 +186,19 @@ export interface CreateProductData {
     tags?: string[];
     keywords?: string[];
     sortOrder?: number;
+}
+
+// Update Stock DTO
+export interface UpdateStockData {
+    stockQuantity: number;
+    reason?: string;
+}
+
+// Update Price DTO
+export interface UpdatePriceData {
+    price?: number;
+    salePrice?: number;
+    isOnSale?: boolean;
 }
 
 // Customer types
@@ -414,6 +412,125 @@ export interface InventoryStats {
     outOfStockCount: number;
     totalValue: number;
     averageStockLevel: number;
+}
+
+// Additional Report Types - Updated to match backend service
+export interface TopSellingProduct {
+    _id: string;
+    productName: string;
+    productSku: string;
+    totalQuantity: number;
+    totalRevenue: number;
+    orderCount: number;
+}
+
+export interface CustomerReportData {
+    period: { startDate: Date; endDate: Date };
+    summary: {
+        totalCustomers: number;
+        totalSpent: number;
+        averageOrderValue: number;
+    };
+    topCustomers: {
+        _id: string;
+        firstName: string;
+        lastName: string;
+        email: string;
+        totalSpent: number;
+        totalOrders: number;
+        lastOrderDate: Date;
+    }[];
+}
+
+export interface InventoryReportData {
+    summary: {
+        totalProducts: number;
+        totalStockValue: number;
+        lowStockCount: number;
+        outOfStockCount: number;
+    };
+    lowStockItems: {
+        _id: string;
+        currentStock: number;
+        unitCost: number;
+        isLowStock: boolean;
+        isOutOfStock: boolean;
+        productId: {
+            name: string;
+            nameAr: string;
+            sku: string;
+        };
+        branchId: {
+            name: string;
+            nameAr: string;
+        };
+    }[];
+}
+
+export interface BranchPerformance {
+    _id: string;
+    branchName: string;
+    branchNameAr: string;
+    totalOrders: number;
+    totalRevenue: number;
+    totalItems: number;
+    averageOrderValue: number;
+}
+
+export interface ProductPerformanceData {
+    _id: string;
+    productName: string;
+    productSku: string;
+    totalQuantity: number;
+    totalRevenue: number;
+    orderCount: number;
+    averagePrice: number;
+}
+
+export interface FinancialReportData {
+    period: { startDate: Date; endDate: Date };
+    summary: {
+        totalRevenue: number;
+        totalOrders: number;
+        averageOrderValue: number;
+        totalTax: number;
+        totalDiscount: number;
+    };
+    dailyData: {
+        _id: { date: string };
+        revenue: number;
+        orders: number;
+        averageOrderValue: number;
+    }[];
+}
+
+export interface SalesReportData {
+    period: { startDate: Date; endDate: Date };
+    summary: {
+        totalOrders: number;
+        totalRevenue: number;
+        totalItems: number;
+        averageOrderValue: number;
+    };
+    dailyData: {
+        _id: { date: string; branchId?: string };
+        totalOrders: number;
+        totalRevenue: number;
+        totalItems: number;
+        averageOrderValue: number;
+    }[];
+}
+
+export interface DashboardSummaryData {
+    today: {
+        orders: number;
+        revenue: number;
+    };
+    totals: {
+        customers: number;
+        products: number;
+        lowStockItems: number;
+    };
 }
 
 // Query parameter types

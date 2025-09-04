@@ -272,10 +272,10 @@ export default function InventoryPage() {
                                                     <div className="flex-shrink-0 h-10 w-10">
                                                         <img
                                                             className="h-10 w-10 rounded-lg object-cover"
-                                                            src={item.product?.mainImage || '/placeholder-product.png'}
+                                                            src={item.product?.mainImage || '/logo.jpg'}
                                                             alt={item.product?.name}
                                                             onError={(e) => {
-                                                                (e.target as HTMLImageElement).src = '/placeholder-product.png';
+                                                                (e.target as HTMLImageElement).src = '/logo.jpg';
                                                             }}
                                                         />
                                                     </div>

@@ -59,12 +59,41 @@ export const useCreateCategory = () => {
     });
 };
 
+export const useCreateCategoryWithImage = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ categoryData, imageFile }: { categoryData: Partial<Category>; imageFile?: File }) => {
+            const response = await apiService.createCategoryWithImage(categoryData, imageFile);
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['categories'] });
+        },
+    });
+};
+
 export const useUpdateCategory = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
         mutationFn: async ({ id, data }: { id: string; data: Partial<Category> }) => {
             const response = await apiService.updateCategory(id, data);
+            return response.data;
+        },
+        onSuccess: (_, { id }) => {
+            queryClient.invalidateQueries({ queryKey: ['categories'] });
+            queryClient.invalidateQueries({ queryKey: ['categories', id] });
+        },
+    });
+};
+
+export const useUpdateCategoryWithImage = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ id, categoryData, imageFile }: { id: string; categoryData: Partial<Category>; imageFile?: File }) => {
+            const response = await apiService.updateCategoryWithImage(id, categoryData, imageFile);
             return response.data;
         },
         onSuccess: (_, { id }) => {

@@ -18,6 +18,7 @@ import { useProducts, useDeleteProduct, Product } from '@/hooks/useProducts';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table';
 import Pagination from '@/components/ui/Pagination';
 import Modal from '@/components/ui/Modal';
+import { getImageUrl } from '@/utils/hepler';
 
 export default function ProductsPage() {
     const router = useRouter();
@@ -242,7 +243,6 @@ export default function ProductsPage() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>المنتج</TableHead>
-                                    <TableHead>SKU</TableHead>
                                     <TableHead>الفئة</TableHead>
                                     <TableHead>الفروع</TableHead>
                                     <TableHead>السعر</TableHead>
@@ -261,16 +261,16 @@ export default function ProductsPage() {
                                                     <div className="flex-shrink-0 h-12 w-12">
                                                         <img
                                                             className="h-12 w-12 rounded-lg object-cover"
-                                                            src={product.mainImage || '/placeholder-product.png'}
+                                                            src={getImageUrl(product.mainImage)}
                                                             alt={product.name}
                                                             onError={(e) => {
-                                                                (e.target as HTMLImageElement).src = '/placeholder-product.png';
+                                                                (e.target as HTMLImageElement).src = '/logo.jpg';
                                                             }}
                                                         />
                                                     </div>
                                                     <div className="mr-4">
                                                         <div className="text-sm font-medium text-gray-900">
-                                                            {product.nameAr || product.name}
+                                                            {product.name}
                                                         </div>
                                                         <div className="text-sm text-gray-500">
                                                             {product.brand}
@@ -279,13 +279,8 @@ export default function ProductsPage() {
                                                 </div>
                                             </TableCell>
                                             <TableCell>
-                                                <span className="text-sm font-mono text-gray-900">
-                                                    {product.sku}
-                                                </span>
-                                            </TableCell>
-                                            <TableCell>
                                                 <span className="text-sm text-gray-900">
-                                                    {product.category?.nameAr || product.category?.name || '-'}
+                                                    {product.category?.name || '-'}
                                                 </span>
                                             </TableCell>
                                             <TableCell>
@@ -391,7 +386,7 @@ export default function ProductsPage() {
             >
                 <div className="space-y-4">
                     <p className="text-gray-600">
-                        هل أنت متأكد من حذف المنتج "{selectedProduct?.nameAr || selectedProduct?.name}"؟
+                        هل أنت متأكد من حذف المنتج "{selectedProduct?.name}"؟
                         لا يمكن التراجع عن هذا الإجراء.
                     </p>
                     <div className="flex justify-end space-x-3 space-x-reverse">

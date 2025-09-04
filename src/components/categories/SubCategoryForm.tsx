@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Save, Tag } from 'lucide-react';
+import { X, Save, Tag, Upload } from 'lucide-react';
 import { SubCategory, CreateSubCategoryData } from '@/types';
 
 interface SubCategoryFormProps {
     subCategory?: SubCategory;
     categoryId: string;
-    onSubmit: (data: CreateSubCategoryData) => void;
+    onSubmit: (data: CreateSubCategoryData, imageFile?: File) => void;
     onCancel: () => void;
     isLoading?: boolean;
     error?: any;
@@ -27,6 +27,9 @@ export default function SubCategoryForm({
         isActive: true,
     });
 
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string>('');
+
     useEffect(() => {
         if (subCategory) {
             setFormData({
@@ -39,7 +42,7 @@ export default function SubCategoryForm({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSubmit(formData);
+        onSubmit(formData, imageFile || undefined);
     };
 
     const handleInputChange = (field: keyof CreateSubCategoryData, value: any) => {
@@ -47,6 +50,31 @@ export default function SubCategoryForm({
             ...prev,
             [field]: value,
         }));
+    };
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setImageFile(file);
+
+            // Create preview URL
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                setImagePreview(e.target?.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const removeImage = () => {
+        setImageFile(null);
+        setImagePreview('');
+
+        // Reset file input
+        const fileInput = document.getElementById('subCategoryImageFile') as HTMLInputElement;
+        if (fileInput) {
+            fileInput.value = '';
+        }
     };
 
     return (
@@ -78,6 +106,55 @@ export default function SubCategoryForm({
                                 required
                                 placeholder="Subcategory Name in English"
                             />
+                        </div>
+
+                        {/* Image Upload */}
+                        <div className="form-group">
+                            <label className="form-label">صورة الفئة الفرعية</label>
+
+                            <div className="space-y-4">
+                                <div className="flex items-center space-x-4 space-x-reverse">
+                                    <input
+                                        type="file"
+                                        id="subCategoryImageFile"
+                                        accept="image/*"
+                                        onChange={handleImageChange}
+                                        className="hidden"
+                                    />
+                                    <label
+                                        htmlFor="subCategoryImageFile"
+                                        className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                    >
+                                        <Upload className="w-4 h-4 ml-2" />
+                                        اختر صورة
+                                    </label>
+                                </div>
+
+                                {/* Image Preview */}
+                                {imagePreview && (
+                                    <div className="relative inline-block">
+                                        <img
+                                            src={imagePreview}
+                                            alt="SubCategory preview"
+                                            className="w-32 h-32 object-cover rounded-lg border"
+                                            onError={(e) => {
+                                                (e.target as HTMLImageElement).style.display = 'none';
+                                            }}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={removeImage}
+                                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                )}
+
+                                <p className="text-sm text-gray-500">
+                                    اختياري: يمكنك رفع صورة للفئة الفرعية
+                                </p>
+                            </div>
                         </div>
 
                         <div className="flex items-center">

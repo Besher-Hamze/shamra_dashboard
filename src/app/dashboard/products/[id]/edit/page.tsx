@@ -66,7 +66,7 @@ export default function EditProductPage() {
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">تعديل المنتج</h1>
                         <p className="text-gray-600 mt-1">
-                            تعديل بيانات منتج "{product.nameAr || product.name}"
+                            تعديل بيانات منتج "{product.name}"
                         </p>
                     </div>
                 </div>

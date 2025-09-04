@@ -70,12 +70,57 @@ export const useCreateProduct = () => {
     });
 };
 
+export const useCreateProductWithImages = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({
+            productData,
+            files
+        }: {
+            productData: CreateProductData;
+            files?: { mainImage?: File; images?: File[] }
+        }) => {
+            const response = await apiService.createProductWithImages(productData, files);
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['products'] });
+            queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+        },
+    });
+};
+
 export const useUpdateProduct = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
         mutationFn: async ({ id, data }: { id: string; data: Partial<CreateProductData> }) => {
             const response = await apiService.updateProduct(id, data);
+            return response.data;
+        },
+        onSuccess: (_, { id }) => {
+            queryClient.invalidateQueries({ queryKey: ['products'] });
+            queryClient.invalidateQueries({ queryKey: ['products', id] });
+            queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+        },
+    });
+};
+
+export const useUpdateProductWithImages = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({
+            id,
+            data,
+            files
+        }: {
+            id: string;
+            data: Partial<CreateProductData>;
+            files?: { mainImage?: File; images?: File[] }
+        }) => {
+            const response = await apiService.updateProductWithImages(id, data, files);
             return response.data;
         },
         onSuccess: (_, { id }) => {

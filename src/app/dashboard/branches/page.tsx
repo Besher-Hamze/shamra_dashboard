@@ -14,8 +14,7 @@ import {
     Trash2,
     Eye,
     Clock,
-    Star,
-    Globe
+    Star
 } from 'lucide-react';
 import { useBranches, useDeleteBranch, BranchesQueryParams } from '@/hooks/useBranches';
 import { Branch } from '@/types';
@@ -294,8 +293,7 @@ export default function BranchesPage() {
                                                     <Building2 className="h-5 w-5 text-blue-600" />
                                                 </div>
                                                 <div>
-                                                    <div className="font-medium text-gray-900">{branch.nameAr}</div>
-                                                    <div className="text-sm text-gray-500">{branch.code}</div>
+                                                    <div className="font-medium text-gray-900">{branch.name}</div>
                                                 </div>
                                             </div>
                                         </td>
@@ -304,7 +302,6 @@ export default function BranchesPage() {
                                                 <MapPin className="h-4 w-4 text-gray-400 mr-2" />
                                                 <div>
                                                     <div className="text-sm text-gray-900">{branch.address?.city}</div>
-                                                    <div className="text-xs text-gray-500">{branch.address?.state}</div>
                                                 </div>
                                             </div>
                                         </td>
@@ -403,7 +400,7 @@ export default function BranchesPage() {
                             هل أنت متأكد من حذف الفرع؟
                         </h3>
                         <p className="text-gray-600 mb-6">
-                            سيتم حذف فرع "{selectedBranch.nameAr}" نهائياً ولا يمكن التراجع عن هذا الإجراء.
+                            سيتم حذف فرع "{selectedBranch.name}" نهائياً ولا يمكن التراجع عن هذا الإجراء.
                         </p>
                         <div className="flex justify-center space-x-3 space-x-reverse">
                             <button

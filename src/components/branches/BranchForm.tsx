@@ -24,23 +24,36 @@ const daysOfWeek = [
     { key: 'sunday', label: 'الأحد' },
 ];
 
+// Helper function to calculate working hours
+const calculateWorkingHours = (openTime: string, closeTime: string): string => {
+    if (!openTime || !closeTime) return '0';
+
+    const [openHour, openMin] = openTime.split(':').map(Number);
+    const [closeHour, closeMin] = closeTime.split(':').map(Number);
+
+    const openMinutes = openHour * 60 + openMin;
+    const closeMinutes = closeHour * 60 + closeMin;
+
+    const diffMinutes = closeMinutes - openMinutes;
+    const hours = Math.floor(diffMinutes / 60);
+    const minutes = diffMinutes % 60;
+
+    if (minutes === 0) {
+        return hours.toString();
+    }
+    return `${hours}:${minutes.toString().padStart(2, '0')}`;
+};
+
 export default function BranchForm({ branch, onSubmit, onCancel, isLoading, error, mode }: BranchFormProps) {
     const [formData, setFormData] = useState<CreateBranchData>({
         name: '',
-        nameAr: '',
-        code: '',
         description: '',
-        descriptionAr: '',
         address: {
             street: '',
             city: '',
-            state: '',
-            zipCode: '',
-            country: 'السعودية',
         },
         phone: '',
         email: '',
-        website: '',
         isActive: true,
         isMainBranch: false,
         operatingHours: {
@@ -59,20 +72,13 @@ export default function BranchForm({ branch, onSubmit, onCancel, isLoading, erro
         if (branch) {
             setFormData({
                 name: branch.name || '',
-                nameAr: branch.nameAr || '',
-                code: branch.code || '',
                 description: branch.description || '',
-                descriptionAr: branch.descriptionAr || '',
                 address: {
                     street: branch.address?.street || '',
                     city: branch.address?.city || '',
-                    state: branch.address?.state || '',
-                    zipCode: branch.address?.zipCode || '',
-                    country: branch.address?.country || 'السعودية',
                 },
                 phone: branch.phone || '',
                 email: branch.email || '',
-                website: branch.website || '',
                 isActive: branch.isActive ?? true,
                 isMainBranch: branch.isMainBranch ?? false,
                 operatingHours: branch.operatingHours || {
@@ -142,63 +148,31 @@ export default function BranchForm({ branch, onSubmit, onCancel, isLoading, erro
                     <div className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="form-group">
-                                <label className="form-label">اسم الفرع (بالعربية) *</label>
+                                <label className="form-label">اسم الفرع</label>
                                 <input
                                     type="text"
-                                    value={formData.nameAr}
-                                    onChange={(e) => handleInputChange('nameAr', e.target.value)}
+                                    value={formData.name}
+                                    onChange={(e) => handleInputChange('name', e.target.value)}
                                     className="input-field"
                                     placeholder="فرع الرياض الرئيسي"
                                     required
                                 />
                             </div>
 
-                            <div className="form-group">
-                                <label className="form-label">اسم الفرع (بالإنجليزية) *</label>
-                                <input
-                                    type="text"
-                                    value={formData.name}
-                                    onChange={(e) => handleInputChange('name', e.target.value)}
-                                    className="input-field"
-                                    placeholder="Riyadh Main Branch"
-                                    required
-                                />
-                            </div>
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label">كود الفرع *</label>
-                            <input
-                                type="text"
-                                value={formData.code}
-                                onChange={(e) => handleInputChange('code', e.target.value)}
-                                className="input-field"
-                                placeholder="BR001"
-                                required
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label className="form-label">الوصف (بالعربية)</label>
+                            <label className="form-label">الوصف</label>
                             <textarea
-                                value={formData.descriptionAr}
-                                onChange={(e) => handleInputChange('descriptionAr', e.target.value)}
+                                value={formData.description}
+                                onChange={(e) => handleInputChange('description', e.target.value)}
                                 className="textarea-field"
                                 rows={3}
                                 placeholder="وصف مختصر عن الفرع..."
                             />
                         </div>
 
-                        <div className="form-group">
-                            <label className="form-label">الوصف (بالإنجليزية)</label>
-                            <textarea
-                                value={formData.description}
-                                onChange={(e) => handleInputChange('description', e.target.value)}
-                                className="textarea-field"
-                                rows={3}
-                                placeholder="Brief description about the branch..."
-                            />
-                        </div>
+
                     </div>
                 </div>
 
@@ -234,16 +208,7 @@ export default function BranchForm({ branch, onSubmit, onCancel, isLoading, erro
                             />
                         </div>
 
-                        <div className="form-group">
-                            <label className="form-label">الموقع الإلكتروني</label>
-                            <input
-                                type="url"
-                                value={formData.website}
-                                onChange={(e) => handleInputChange('website', e.target.value)}
-                                className="input-field"
-                                placeholder="https://company.com/riyadh"
-                            />
-                        </div>
+
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="form-group">
@@ -321,72 +286,132 @@ export default function BranchForm({ branch, onSubmit, onCancel, isLoading, erro
                             required
                         />
                     </div>
-
-                    <div className="form-group">
-                        <label className="form-label">المنطقة</label>
-                        <input
-                            type="text"
-                            value={formData.address.state}
-                            onChange={(e) => handleInputChange('address.state', e.target.value)}
-                            className="input-field"
-                            placeholder="منطقة الرياض"
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label className="form-label">الرمز البريدي</label>
-                        <input
-                            type="text"
-                            value={formData.address.zipCode}
-                            onChange={(e) => handleInputChange('address.zipCode', e.target.value)}
-                            className="input-field"
-                            placeholder="12345"
-                        />
-                    </div>
-
-                    <div className="form-group md:col-span-2">
-                        <label className="form-label">البلد *</label>
-                        <input
-                            type="text"
-                            value={formData.address.country}
-                            onChange={(e) => handleInputChange('address.country', e.target.value)}
-                            className="input-field"
-                            required
-                        />
-                    </div>
                 </div>
             </div>
 
             {/* Operating Hours */}
             <div className="space-y-6">
-                <div className="flex items-center space-x-3 space-x-reverse pb-4 border-b border-gray-200">
-                    <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-                        <Clock className="h-5 w-5 text-orange-600" />
+                <div className="flex items-center justify-between pb-4 border-b border-gray-200">
+                    <div className="flex items-center space-x-3 space-x-reverse">
+                        <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                            <Clock className="h-5 w-5 text-orange-600" />
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900">ساعات العمل</h3>
                     </div>
-                    <h3 className="text-lg font-medium text-gray-900">ساعات العمل</h3>
+
+                    {/* Quick Actions */}
+                    <div className="flex items-center space-x-2 space-x-reverse">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                daysOfWeek.forEach(day => {
+                                    handleInputChange(`operatingHours.${day.key}.open`, '09:00');
+                                    handleInputChange(`operatingHours.${day.key}.close`, '17:00');
+                                });
+                            }}
+                            className="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1 rounded-lg transition-colors"
+                        >
+                            تطبيق على الكل (9-5)
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                daysOfWeek.forEach(day => {
+                                    if (day.key === 'friday') {
+                                        handleInputChange(`operatingHours.${day.key}.open`, '');
+                                        handleInputChange(`operatingHours.${day.key}.close`, '');
+                                    } else {
+                                        handleInputChange(`operatingHours.${day.key}.open`, '09:00');
+                                        handleInputChange(`operatingHours.${day.key}.close`, '17:00');
+                                    }
+                                });
+                            }}
+                            className="text-xs bg-green-50 text-green-600 hover:bg-green-100 px-3 py-1 rounded-lg transition-colors"
+                        >
+                            أيام العمل (عدا الجمعة)
+                        </button>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {daysOfWeek.map((day) => (
-                        <div key={day.key} className="form-group">
-                            <label className="form-label">{day.label}</label>
-                            <div className="flex space-x-2 space-x-reverse">
-                                <input
-                                    type="time"
-                                    value={formData.operatingHours?.[day.key as keyof typeof formData.operatingHours]?.open || '09:00'}
-                                    onChange={(e) => handleInputChange(`operatingHours.${day.key}.open`, e.target.value)}
-                                    className="input-field flex-1"
-                                />
-                                <span className="flex items-center text-gray-500 text-sm px-2">إلى</span>
-                                <input
-                                    type="time"
-                                    value={formData.operatingHours?.[day.key as keyof typeof formData.operatingHours]?.close || '17:00'}
-                                    onChange={(e) => handleInputChange(`operatingHours.${day.key}.close`, e.target.value)}
-                                    className="input-field flex-1"
-                                />
+                    {daysOfWeek.map((day) => {
+                        const dayHours = formData.operatingHours?.[day.key as keyof typeof formData.operatingHours];
+                        const isClosed = !dayHours?.open && !dayHours?.close;
+
+                        return (
+                            <div key={day.key} className={`form-group p-4 rounded-xl border-2 transition-all ${isClosed
+                                ? 'border-red-200 bg-red-50'
+                                : 'border-gray-200 bg-white hover:border-orange-200'
+                                }`}>
+                                <div className="flex items-center justify-between mb-3">
+                                    <label className={`font-medium ${isClosed ? 'text-red-700' : 'text-gray-900'
+                                        }`}>
+                                        {day.label}
+                                    </label>
+                                    <div className="flex items-center space-x-1 space-x-reverse">
+                                        <input
+                                            type="checkbox"
+                                            id={`closed-${day.key}`}
+                                            checked={isClosed}
+                                            onChange={(e) => {
+                                                if (e.target.checked) {
+                                                    // Mark as closed
+                                                    handleInputChange(`operatingHours.${day.key}.open`, '');
+                                                    handleInputChange(`operatingHours.${day.key}.close`, '');
+                                                } else {
+                                                    // Set default hours
+                                                    handleInputChange(`operatingHours.${day.key}.open`, '09:00');
+                                                    handleInputChange(`operatingHours.${day.key}.close`, '17:00');
+                                                }
+                                            }}
+                                            className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded transition-colors"
+                                        />
+                                        <label htmlFor={`closed-${day.key}`} className="text-xs text-red-600 font-medium cursor-pointer">
+                                            مغلق
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {isClosed ? (
+                                    <div className="bg-red-100 border border-red-300 rounded-lg p-3 text-center">
+                                        <span className="text-red-700 text-sm font-semibold">مغلق</span>
+                                        <div className="text-red-600 text-xs mt-1">لا يوجد عمل في هذا اليوم</div>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-2">
+                                        <div className="flex space-x-2 space-x-reverse">
+                                            <div className="flex-1">
+                                                <label className="text-xs text-gray-600 mb-1 block">فتح</label>
+                                                <input
+                                                    type="time"
+                                                    value={dayHours?.open || '09:00'}
+                                                    onChange={(e) => handleInputChange(`operatingHours.${day.key}.open`, e.target.value)}
+                                                    className="input-field w-full text-sm"
+                                                />
+                                            </div>
+                                            <div className="flex items-center justify-center pt-5">
+                                                <span className="text-gray-400 text-sm">—</span>
+                                            </div>
+                                            <div className="flex-1">
+                                                <label className="text-xs text-gray-600 mb-1 block">إغلاق</label>
+                                                <input
+                                                    type="time"
+                                                    value={dayHours?.close || '17:00'}
+                                                    onChange={(e) => handleInputChange(`operatingHours.${day.key}.close`, e.target.value)}
+                                                    className="input-field w-full text-sm"
+                                                />
+                                            </div>
+                                        </div>
+                                        {dayHours?.open && dayHours?.close && (
+                                            <div className="text-xs text-gray-500 text-center mt-2">
+                                                مدة العمل: {calculateWorkingHours(dayHours.open, dayHours.close)} ساعات
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
 
@@ -413,7 +438,7 @@ export default function BranchForm({ branch, onSubmit, onCancel, isLoading, erro
                 <button
                     type="submit"
                     className="btn-primary flex items-center"
-                    disabled={isLoading || !formData.nameAr || !formData.name || !formData.code}
+                    disabled={isLoading || !formData.name}
                 >
                     {isLoading ? (
                         <>

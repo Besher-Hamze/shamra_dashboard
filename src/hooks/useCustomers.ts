@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiService } from '@/lib/api';
+import { CreateCustomerData, PaginatedResponse } from '@/types';
 
 export interface CustomerAddress {
     street: string;
@@ -84,7 +85,7 @@ export const useCreateCustomer = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (customerData: Partial<Customer>) => {
+        mutationFn: async (customerData: CreateCustomerData) => {
             const response = await apiService.createCustomer(customerData);
             return response.data;
         },

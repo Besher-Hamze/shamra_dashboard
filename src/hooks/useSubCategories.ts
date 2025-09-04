@@ -58,6 +58,23 @@ export const useCreateSubCategory = () => {
     });
 };
 
+// Create sub-category with image
+export const useCreateSubCategoryWithImage = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ data, imageFile }: { data: CreateSubCategoryData; imageFile?: File }) => {
+            const response = await apiService.createSubCategoryWithImage(data, imageFile);
+            return response.data;
+        },
+        onSuccess: (result, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['sub-categories'] });
+            queryClient.invalidateQueries({ queryKey: ['sub-categories-by-category', variables.data.categoryId] });
+            queryClient.invalidateQueries({ queryKey: ['categories'] });
+        },
+    });
+};
+
 // Update sub-category
 export const useUpdateSubCategory = () => {
     const queryClient = useQueryClient();
@@ -72,6 +89,26 @@ export const useUpdateSubCategory = () => {
             queryClient.invalidateQueries({ queryKey: ['sub-category', variables.id] });
             if (variables.categoryId) {
                 queryClient.invalidateQueries({ queryKey: ['sub-categories-by-category', variables.categoryId] });
+            }
+            queryClient.invalidateQueries({ queryKey: ['categories'] });
+        },
+    });
+};
+
+// Update sub-category with image
+export const useUpdateSubCategoryWithImage = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ id, data, imageFile }: { id: string; data: UpdateSubCategoryData; imageFile?: File }) => {
+            const response = await apiService.updateSubCategoryWithImage(id, data, imageFile);
+            return response.data;
+        },
+        onSuccess: (result, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['sub-categories'] });
+            queryClient.invalidateQueries({ queryKey: ['sub-category', variables.id] });
+            if (variables.data.categoryId) {
+                queryClient.invalidateQueries({ queryKey: ['sub-categories-by-category', variables.data.categoryId] });
             }
             queryClient.invalidateQueries({ queryKey: ['categories'] });
         },

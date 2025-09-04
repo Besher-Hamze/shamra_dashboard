@@ -11,20 +11,13 @@ export interface BranchesQueryParams extends BaseQueryParams {
 
 export interface CreateBranchData {
     name: string;
-    nameAr: string;
-    code: string;
     description?: string;
-    descriptionAr?: string;
     address: {
         street: string;
         city: string;
-        state?: string;
-        zipCode?: string;
-        country: string;
     };
     phone?: string;
     email?: string;
-    website?: string;
     isActive: boolean;
     isMainBranch?: boolean;
     operatingHours?: {

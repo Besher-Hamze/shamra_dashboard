@@ -16,13 +16,14 @@ import {
     List
 } from 'lucide-react';
 import { useCategories, useDeleteCategory } from '@/hooks/useCategories';
-import { useCreateSubCategory, useUpdateSubCategory, useDeleteSubCategory, useSubCategories } from '@/hooks/useSubCategories';
+import { useCreateSubCategory, useUpdateSubCategory, useDeleteSubCategory, useSubCategories, useCreateSubCategoryWithImage, useUpdateSubCategoryWithImage } from '@/hooks/useSubCategories';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table';
 import Pagination from '@/components/ui/Pagination';
 import Modal from '@/components/ui/Modal';
 import CategoryForm from '@/components/categories/CategoryForm';
 import SubCategoryForm from '@/components/categories/SubCategoryForm';
 import { Category, SubCategory } from '@/types';
+import { getImageUrl } from '@/utils/hepler';
 
 export default function CategoriesPage() {
     const [currentPage, setCurrentPage] = useState(1);
@@ -57,6 +58,8 @@ export default function CategoriesPage() {
     const { data: subCategoriesData } = useSubCategories();
     const createSubCategoryMutation = useCreateSubCategory();
     const updateSubCategoryMutation = useUpdateSubCategory();
+    const createSubCategoryWithImageMutation = useCreateSubCategoryWithImage();
+    const updateSubCategoryWithImageMutation = useUpdateSubCategoryWithImage();
     const deleteSubCategoryMutation = useDeleteSubCategory();
 
     // Toggle sub-categories visibility
@@ -94,15 +97,14 @@ export default function CategoriesPage() {
         }
     };
 
-    // Sub-category handlers
-    const handleViewSubCategories = (category: Category) => {
-        setSelectedCategoryForSubs(category);
-        setShowSubCategories(true);
-    };
 
-    const handleCreateSubCategory = async (data: any) => {
+    const handleCreateSubCategory = async (data: any, imageFile?: File) => {
         try {
-            await createSubCategoryMutation.mutateAsync(data);
+            if (imageFile) {
+                await createSubCategoryWithImageMutation.mutateAsync({ data, imageFile });
+            } else {
+                await createSubCategoryMutation.mutateAsync(data);
+            }
             setIsCreateSubModalOpen(false);
             // Keep the category expanded to show the new sub-category
             if (selectedCategoryForSubs) {
@@ -118,10 +120,18 @@ export default function CategoriesPage() {
         setIsEditSubModalOpen(true);
     };
 
-    const handleUpdateSubCategory = async (data: any) => {
+    const handleUpdateSubCategory = async (data: any, imageFile?: File) => {
         if (!selectedSubCategory) return;
         try {
-            await updateSubCategoryMutation.mutateAsync({ ...data, id: selectedSubCategory.id });
+            if (imageFile) {
+                await updateSubCategoryWithImageMutation.mutateAsync({
+                    id: selectedSubCategory.id,
+                    data: { ...data, id: selectedSubCategory.id },
+                    imageFile
+                });
+            } else {
+                await updateSubCategoryMutation.mutateAsync({ ...data, id: selectedSubCategory.id });
+            }
             setIsEditSubModalOpen(false);
             setSelectedSubCategory(null);
         } catch (error) {
@@ -162,32 +172,26 @@ export default function CategoriesPage() {
                             <div className="flex-shrink-0 h-8 w-8">
                                 <img
                                     className="h-8 w-8 rounded-lg object-cover"
-                                    src={category.icon || '/placeholder-category.png'}
+                                    src={getImageUrl(category.image)}
                                     alt={category.name}
                                     onError={(e) => {
-                                        (e.target as HTMLImageElement).src = '/placeholder-category.png';
+                                        (e.target as HTMLImageElement).src = '/logo.jpg';
                                     }}
                                 />
                             </div>
                             <div className="mr-3">
                                 <div className={`text-sm ${isMainCategory ? 'font-semibold' : 'font-medium'} text-gray-900`}>
-                                    {category.nameAr || category.name}
+                                    {category.name}
                                     {!isMainCategory && (
                                         <span className="text-xs text-gray-500 mr-2">(فئة فرعية)</span>
                                     )}
                                 </div>
-                                <div className="text-xs text-gray-500">
-                                    {category.slug}
-                                </div>
+
                             </div>
                         </div>
                     </div>
                 </TableCell>
-                <TableCell>
-                    <span className="text-sm text-gray-900">
-                        {category.description || category.descriptionAr || '-'}
-                    </span>
-                </TableCell>
+
                 <TableCell>
                     {isMainCategory && (
                         <div className="flex items-center space-x-2 space-x-reverse">
@@ -275,7 +279,16 @@ export default function CategoriesPage() {
                         <TableCell>
                             <div className="flex items-center" style={{ paddingRight: '40px' }}>
                                 <div className="w-4 h-4 border-r border-b border-purple-300 mr-2"></div>
-                                <Tag className="h-4 w-4 text-purple-600 mr-2" />
+                                {subCategory.image && subCategory.image !== '' ? (
+                                    <img
+                                        src={getImageUrl(subCategory.image)}
+                                        alt={subCategory.name}
+                                        className="h-7 w-7 object-cover rounded-full mr-2 border border-purple-200"
+                                        style={{ minWidth: '28px', minHeight: '28px' }}
+                                    />
+                                ) : (
+                                    <Tag className="h-4 w-4 text-purple-600 mr-2" />
+                                )}
                                 <div className="mr-3">
                                     <div className="text-sm font-medium text-gray-900">
                                         {subCategory.name}
@@ -287,9 +300,7 @@ export default function CategoriesPage() {
                                 </div>
                             </div>
                         </TableCell>
-                        <TableCell>
-                            <span className="text-sm text-gray-500">-</span>
-                        </TableCell>
+
                         <TableCell>
                             <span className="text-sm text-gray-500">-</span>
                         </TableCell>
@@ -333,9 +344,9 @@ export default function CategoriesPage() {
         }
 
         // Add child categories (for hierarchical categories)
-        if (category.children && category.children.length > 0) {
-            category.children.forEach(child => {
-                rows.push(...renderCategoryRow(child, level + 1));
+        if (category.subCategories && category.subCategories.length > 0) {
+            category.subCategories.forEach(child => {
+                rows.push(...renderCategoryRow(child as unknown as Category, level + 1));
             });
         }
 
@@ -423,7 +434,7 @@ export default function CategoriesPage() {
                         <div className="mr-3">
                             <p className="text-sm font-medium text-gray-600">الفئات الرئيسية</p>
                             <p className="text-xl font-bold text-gray-900">
-                                {categoriesData?.data?.filter(c => !c.parentId).length || 0}
+                                {categoriesData?.data?.filter(c => !c.subCategories).length || 0}
                             </p>
                         </div>
                     </div>
@@ -498,7 +509,6 @@ export default function CategoriesPage() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>الفئة</TableHead>
-                                    <TableHead>الوصف</TableHead>
                                     <TableHead>الفئات الفرعية</TableHead>
                                     <TableHead>ترتيب العرض</TableHead>
                                     <TableHead>الحالة</TableHead>
@@ -577,12 +587,12 @@ export default function CategoriesPage() {
             >
                 <div className="space-y-4">
                     <p className="text-gray-600">
-                        هل أنت متأكد من حذف الفئة "{selectedCategory?.nameAr || selectedCategory?.name}"؟
+                        هل أنت متأكد من حذف الفئة "{selectedCategory?.name}"؟
                     </p>
-                    {selectedCategory?.children && selectedCategory.children.length > 0 && (
+                    {selectedCategory?.subCategories && selectedCategory.subCategories.length > 0 && (
                         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                             <p className="text-yellow-800 text-sm">
-                                تحذير: هذه الفئة تحتوي على {selectedCategory.children.length} فئة فرعية.
+                                تحذير: هذه الفئة تحتوي على {selectedCategory.subCategories.length} فئة فرعية.
                                 سيتم حذف جميع الفئات الفرعية أيضاً.
                             </p>
                         </div>
@@ -619,8 +629,8 @@ export default function CategoriesPage() {
                     categoryId={selectedCategoryForSubs.id}
                     onSubmit={handleCreateSubCategory}
                     onCancel={() => setIsCreateSubModalOpen(false)}
-                    isLoading={createSubCategoryMutation.isPending}
-                    error={createSubCategoryMutation.error}
+                    isLoading={createSubCategoryMutation.isPending || createSubCategoryWithImageMutation.isPending}
+                    error={createSubCategoryMutation.error || createSubCategoryWithImageMutation.error}
                 />
             )}
 
@@ -634,8 +644,8 @@ export default function CategoriesPage() {
                         setIsEditSubModalOpen(false);
                         setSelectedSubCategory(null);
                     }}
-                    isLoading={updateSubCategoryMutation.isPending}
-                    error={updateSubCategoryMutation.error}
+                    isLoading={updateSubCategoryMutation.isPending || updateSubCategoryWithImageMutation.isPending}
+                    error={updateSubCategoryMutation.error || updateSubCategoryWithImageMutation.error}
                 />
             )}
 

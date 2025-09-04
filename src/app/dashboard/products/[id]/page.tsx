@@ -1,10 +1,11 @@
 'use client';
 
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowRight, Edit, Trash2, Package, Tag, DollarSign, Archive, Star, Loader2, Eye } from 'lucide-react';
+import { ArrowRight, Edit, Trash2, Package, Tag, DollarSign, Archive, Star, Loader2, Eye, Ruler, FileText, Info, Image } from 'lucide-react';
 import { useProduct, useDeleteProduct } from '@/hooks/useProducts';
 import { useState } from 'react';
 import Modal from '@/components/ui/Modal';
+import { getImageUrl } from '@/utils/hepler';
 
 export default function ProductDetailsPage() {
     const router = useRouter();
@@ -33,18 +34,21 @@ export default function ProductDetailsPage() {
                 return <span className="badge-success">نشط</span>;
             case 'INACTIVE':
                 return <span className="badge-danger">غير نشط</span>;
-            case 'DRAFT':
-                return <span className="badge-warning">مسودة</span>;
+            case 'OUT_OF_STOCK':
+                return <span className="badge-warning">نفدت الكمية</span>;
             default:
                 return <span className="badge-gray">{status}</span>;
         }
     };
 
-    const formatPrice = (price: number, currency: string = 'USD') => {
-        return new Intl.NumberFormat('ar-SA', {
-            style: 'currency',
-            currency: currency,
-        }).format(price);
+    const formatPrice = (price: number, currency: string = 'SYP') => {
+        const currencyMap: { [key: string]: string } = {
+            'SYP': 'ل.س',
+            'USD': '$',
+            'EUR': '€',
+            'SAR': 'ر.س'
+        };
+        return `${price.toLocaleString()} ${currencyMap[currency] || currency}`;
     };
 
     if (isLoading) {
@@ -93,7 +97,7 @@ export default function ProductDetailsPage() {
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">تفاصيل المنتج</h1>
                         <p className="text-gray-600 mt-1">
-                            عرض تفاصيل منتج "{product.nameAr || product.name}"
+                            عرض تفاصيل منتج "{product.name}"
                         </p>
                     </div>
                 </div>
@@ -120,15 +124,44 @@ export default function ProductDetailsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Main Information */}
                 <div className="lg:col-span-2 space-y-6">
-                    {/* Product Image */}
-                    {product.mainImage && (
+                    {/* Product Images */}
+                    {(product.images && product.images.length > 0) && (
                         <div className="card">
-                            <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
-                                <img
-                                    src={product.mainImage}
-                                    alt={product.nameAr || product.name}
-                                    className="w-full h-full object-cover"
-                                />
+                            <div className="space-y-4">
+                                {/* Main Image */}
+                                {product.mainImage && (
+                                    <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                                        <img
+                                            src={getImageUrl(product.mainImage)}
+                                            alt={product.name}
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                (e.target as HTMLImageElement).src = '/placeholder-image.png';
+                                            }}
+                                        />
+                                    </div>
+                                )}
+
+                                {/* Additional Images */}
+                                {product.images && product.images.length > 1 && (
+                                    <div className="grid grid-cols-4 gap-2">
+                                        {product.images
+                                            .filter(img => img !== product.mainImage)
+                                            .slice(0, 4)
+                                            .map((image, index) => (
+                                                <div key={index} className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                                                    <img
+                                                        src={getImageUrl(image)}
+                                                        alt={`${product.name} - صورة ${index + 2}`}
+                                                        className="w-full h-full object-cover cursor-pointer hover:opacity-75 transition-opacity"
+                                                        onError={(e) => {
+                                                            (e.target as HTMLImageElement).src = '/placeholder-image.png';
+                                                        }}
+                                                    />
+                                                </div>
+                                            ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
@@ -144,16 +177,8 @@ export default function ProductDetailsPage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="text-sm font-medium text-gray-500">اسم المنتج (عربي)</label>
-                                <p className="mt-1 text-gray-900 font-medium">{product.nameAr}</p>
-                            </div>
-                            <div>
-                                <label className="text-sm font-medium text-gray-500">اسم المنتج (إنجليزي)</label>
+                                <label className="text-sm font-medium text-gray-500">اسم المنتج</label>
                                 <p className="mt-1 text-gray-900 font-medium">{product.name}</p>
-                            </div>
-                            <div>
-                                <label className="text-sm font-medium text-gray-500">رمز المنتج (SKU)</label>
-                                <p className="mt-1 text-gray-900 font-mono">{product.sku}</p>
                             </div>
                             <div>
                                 <label className="text-sm font-medium text-gray-500">الباركود</label>
@@ -167,10 +192,10 @@ export default function ProductDetailsPage() {
                                 <label className="text-sm font-medium text-gray-500">العلامة التجارية</label>
                                 <p className="mt-1 text-gray-900">{product.brand || 'غير محدد'}</p>
                             </div>
-                            {product.descriptionAr && (
+                            {product.description && (
                                 <div className="md:col-span-2">
                                     <label className="text-sm font-medium text-gray-500">الوصف</label>
-                                    <p className="mt-1 text-gray-900">{product.descriptionAr}</p>
+                                    <p className="mt-1 text-gray-900">{product.description}</p>
                                 </div>
                             )}
                         </div>
@@ -190,12 +215,10 @@ export default function ProductDetailsPage() {
                                 <label className="text-sm font-medium text-gray-500">السعر الأساسي</label>
                                 <p className="mt-1 text-gray-900 font-bold text-lg">{formatPrice(product.price, product.currency)}</p>
                             </div>
-                            {product.costPrice && (
-                                <div>
-                                    <label className="text-sm font-medium text-gray-500">سعر التكلفة</label>
-                                    <p className="mt-1 text-gray-900 font-medium">{formatPrice(product.costPrice, product.currency)}</p>
-                                </div>
-                            )}
+                            <div>
+                                <label className="text-sm font-medium text-gray-500">سعر التكلفة</label>
+                                <p className="mt-1 text-gray-900 font-medium">{formatPrice(product.costPrice, product.currency)}</p>
+                            </div>
                             {product.salePrice && (
                                 <div>
                                     <label className="text-sm font-medium text-gray-500">سعر التخفيض</label>
@@ -208,7 +231,11 @@ export default function ProductDetailsPage() {
                             </div>
                             <div>
                                 <label className="text-sm font-medium text-gray-500">الحد الأدنى للمخزون</label>
-                                <p className="mt-1 text-gray-900">{product.minStockLevel || 'غير محدد'}</p>
+                                <p className="mt-1 text-gray-900">{product.minStockLevel}</p>
+                            </div>
+                            <div>
+                                <label className="text-sm font-medium text-gray-500">العملة</label>
+                                <p className="mt-1 text-gray-900">{product.currency}</p>
                             </div>
                         </div>
                     </div>
@@ -268,8 +295,24 @@ export default function ProductDetailsPage() {
                         <div className="space-y-4">
                             <div>
                                 <label className="text-sm font-medium text-gray-500">الفئة</label>
-                                <p className="mt-1 text-gray-900">{product.category?.nameAr || product.category?.name || 'غير محدد'}</p>
+                                <p className="mt-1 text-gray-900">{product.category?.name || 'غير محدد'}</p>
                             </div>
+                            {product.subCategory && (
+                                <div>
+                                    <label className="text-sm font-medium text-gray-500">الفئة الفرعية</label>
+                                    <p className="mt-1 text-gray-900">{product.subCategory.name}</p>
+                                </div>
+                            )}
+                            {product.branchDetails && product.branchDetails.length > 0 && (
+                                <div>
+                                    <label className="text-sm font-medium text-gray-500">الفروع المتاحة</label>
+                                    <div className="mt-2 flex flex-wrap gap-2">
+                                        {product.branchDetails.map((branch) => (
+                                            <span key={branch.id} className="badge-secondary">{branch.name}</span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                             {product.tags && product.tags.length > 0 && (
                                 <div>
                                     <label className="text-sm font-medium text-gray-500">العلامات</label>
@@ -280,44 +323,38 @@ export default function ProductDetailsPage() {
                                     </div>
                                 </div>
                             )}
+                            {product.keywords && product.keywords.length > 0 && (
+                                <div>
+                                    <label className="text-sm font-medium text-gray-500">الكلمات المفتاحية</label>
+                                    <div className="mt-2 flex flex-wrap gap-2">
+                                        {product.keywords.map((keyword, index) => (
+                                            <span key={index} className="badge-warning">{keyword}</span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 
-                    {/* Dimensions Card */}
-                    {product.dimensions && (
+
+
+                    {/* Specifications Card */}
+                    {product.specifications && Object.keys(product.specifications).length > 0 && (
                         <div className="card">
                             <div className="flex items-center space-x-3 space-x-reverse mb-6">
-                                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                                    <Archive className="h-6 w-6 text-gray-600" />
+                                <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                                    <FileText className="h-6 w-6 text-indigo-600" />
                                 </div>
-                                <h3 className="text-lg font-semibold text-gray-900">الأبعاد والوزن</h3>
+                                <h3 className="text-lg font-semibold text-gray-900">المواصفات التقنية</h3>
                             </div>
 
                             <div className="space-y-3">
-                                {product.weight && (
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">الوزن</span>
-                                        <span className="font-medium">{product.weight} كجم</span>
+                                {Object.entries(product.specifications).map(([key, value]) => (
+                                    <div key={key} className="flex justify-between py-2 border-b border-gray-100 last:border-b-0">
+                                        <span className="text-gray-600 font-medium">{key}</span>
+                                        <span className="text-gray-900">{String(value)}</span>
                                     </div>
-                                )}
-                                {product.dimensions.length && (
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">الطول</span>
-                                        <span className="font-medium">{product.dimensions.length} سم</span>
-                                    </div>
-                                )}
-                                {product.dimensions.width && (
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">العرض</span>
-                                        <span className="font-medium">{product.dimensions.width} سم</span>
-                                    </div>
-                                )}
-                                {product.dimensions.height && (
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">الارتفاع</span>
-                                        <span className="font-medium">{product.dimensions.height} سم</span>
-                                    </div>
-                                )}
+                                ))}
                             </div>
                         </div>
                     )}
@@ -358,7 +395,7 @@ export default function ProductDetailsPage() {
                             هل أنت متأكد من حذف المنتج؟
                         </h3>
                         <p className="text-gray-600 mb-6">
-                            سيتم حذف منتج "{product.nameAr || product.name}" نهائياً ولا يمكن التراجع عن هذا الإجراء.
+                            سيتم حذف منتج "{product.name}" نهائياً ولا يمكن التراجع عن هذا الإجراء.
                         </p>
                         <div className="flex justify-center space-x-3 space-x-reverse">
                             <button

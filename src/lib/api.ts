@@ -120,6 +120,39 @@ class ApiService {
         return this.api.get('/reports/sales', { params });
     }
 
+    async exportSalesReport(params: { startDate: string; endDate: string; branchId?: string; format?: 'csv' | 'json' }): Promise<AxiosResponse<Blob>> {
+        return this.api.get('/reports/sales/export', {
+            params,
+            responseType: 'blob'
+        });
+    }
+
+    async getTopSellingProducts(params: { startDate: string; endDate: string; limit?: number; branchId?: string }): Promise<AxiosResponse<ApiResponse<any[]>>> {
+        return this.api.get('/reports/top-selling-products', { params });
+    }
+
+    async getCustomerReport(params: { startDate: string; endDate: string }): Promise<AxiosResponse<ApiResponse<any>>> {
+        return this.api.get('/reports/customers', { params });
+    }
+
+    async getInventoryReport(params?: { branchId?: string }): Promise<AxiosResponse<ApiResponse<any>>> {
+        return this.api.get('/reports/inventory', { params });
+    }
+
+    async getBranchPerformanceReport(params: { startDate: string; endDate: string }): Promise<AxiosResponse<ApiResponse<any[]>>> {
+        return this.api.get('/reports/branches/performance', { params });
+    }
+
+    async getProductPerformanceReport(params: { startDate: string; endDate: string; branchId?: string }): Promise<AxiosResponse<ApiResponse<any>>> {
+        return this.api.get('/reports/products/performance', { params });
+    }
+
+    async getFinancialReport(params: { startDate: string; endDate: string; branchId?: string }): Promise<AxiosResponse<ApiResponse<any>>> {
+        return this.api.get('/reports/financial', { params });
+    }
+
+
+
     // Products endpoints
     async getProducts(params?: ProductsQueryParams): Promise<ApiResponse<PaginatedResponse<Product>>> {
         return this.api.get('/products', { params });
@@ -133,8 +166,104 @@ class ApiService {
         return this.api.post('/products', data);
     }
 
+    async createProductWithImages(data: CreateProductData, files?: { mainImage?: File; images?: File[] }): Promise<AxiosResponse<ApiResponse<Product>>> {
+        const formData = new FormData();
+
+        // Convert data to match CreateProductFormDataDto expectations (all strings)
+        if (data.name) formData.append('name', data.name);
+        if (data.description) formData.append('description', data.description);
+        if (data.barcode) formData.append('barcode', data.barcode);
+        if (data.price !== undefined) formData.append('price', String(data.price));
+        if (data.costPrice !== undefined) formData.append('costPrice', String(data.costPrice));
+        if (data.salePrice !== undefined) formData.append('salePrice', String(data.salePrice));
+        if (data.currency) formData.append('currency', data.currency);
+        if (data.stockQuantity !== undefined) formData.append('stockQuantity', String(data.stockQuantity));
+        if (data.minStockLevel !== undefined) formData.append('minStockLevel', String(data.minStockLevel));
+        if (data.categoryId) formData.append('categoryId', data.categoryId);
+        if (data.subCategoryId) formData.append('subCategoryId', data.subCategoryId);
+        if (data.branches && data.branches.length > 0) formData.append('branches', JSON.stringify(data.branches));
+        if (data.brand) formData.append('brand', data.brand);
+        if (data.specifications && Object.keys(data.specifications).length > 0) {
+            formData.append('specifications', JSON.stringify(data.specifications));
+        }
+        if (data.status) formData.append('status', data.status);
+        if (data.isActive !== undefined) formData.append('isActive', String(data.isActive));
+        if (data.isFeatured !== undefined) formData.append('isFeatured', String(data.isFeatured));
+        if (data.isOnSale !== undefined) formData.append('isOnSale', String(data.isOnSale));
+        if (data.tags && data.tags.length > 0) formData.append('tags', JSON.stringify(data.tags));
+        if (data.keywords && data.keywords.length > 0) formData.append('keywords', JSON.stringify(data.keywords));
+        if (data.sortOrder !== undefined) formData.append('sortOrder', String(data.sortOrder));
+
+        // Add files
+        if (files?.mainImage) {
+            formData.append('mainImage', files.mainImage);
+        }
+        if (files?.images) {
+            files.images.forEach((image) => {
+                formData.append('images', image);
+            });
+        }
+
+        return this.api.post('/products/with-images', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+    }
+
     async updateProduct(id: string, data: Partial<CreateProductData>): Promise<AxiosResponse<ApiResponse<Product>>> {
         return this.api.patch(`/products/${id}`, data);
+    }
+
+    async updateProductWithImages(id: string, data: Partial<CreateProductData>, files?: { mainImage?: File; images?: File[] }): Promise<AxiosResponse<ApiResponse<Product>>> {
+        const formData = new FormData();
+
+        // Convert data to match UpdateProductFormDataDto expectations (all strings)
+        if (data.name) formData.append('name', data.name);
+        if (data.description !== undefined) formData.append('description', data.description || '');
+        if (data.barcode !== undefined) formData.append('barcode', data.barcode || '');
+        if (data.price !== undefined) formData.append('price', String(data.price));
+        if (data.costPrice !== undefined) formData.append('costPrice', String(data.costPrice));
+        if (data.salePrice !== undefined) formData.append('salePrice', String(data.salePrice));
+        if (data.currency) formData.append('currency', data.currency);
+        if (data.stockQuantity !== undefined) formData.append('stockQuantity', String(data.stockQuantity));
+        if (data.minStockLevel !== undefined) formData.append('minStockLevel', String(data.minStockLevel));
+        if (data.categoryId) formData.append('categoryId', data.categoryId);
+        if (data.subCategoryId !== undefined) formData.append('subCategoryId', data.subCategoryId || '');
+        if (data.branches !== undefined) {
+            formData.append('branches', data.branches && data.branches.length > 0 ? JSON.stringify(data.branches) : '[]');
+        }
+        if (data.brand !== undefined) formData.append('brand', data.brand || '');
+        if (data.specifications !== undefined) {
+            formData.append('specifications', data.specifications && Object.keys(data.specifications).length > 0 ? JSON.stringify(data.specifications) : '{}');
+        }
+        if (data.status) formData.append('status', data.status);
+        if (data.isActive !== undefined) formData.append('isActive', String(data.isActive));
+        if (data.isFeatured !== undefined) formData.append('isFeatured', String(data.isFeatured));
+        if (data.isOnSale !== undefined) formData.append('isOnSale', String(data.isOnSale));
+        if (data.tags !== undefined) {
+            formData.append('tags', data.tags && data.tags.length > 0 ? JSON.stringify(data.tags) : '[]');
+        }
+        if (data.keywords !== undefined) {
+            formData.append('keywords', data.keywords && data.keywords.length > 0 ? JSON.stringify(data.keywords) : '[]');
+        }
+        if (data.sortOrder !== undefined) formData.append('sortOrder', String(data.sortOrder));
+
+        // Add files
+        if (files?.mainImage) {
+            formData.append('mainImage', files.mainImage);
+        }
+        if (files?.images) {
+            files.images.forEach((image) => {
+                formData.append('images', image);
+            });
+        }
+
+        return this.api.patch(`/products/${id}/with-images`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
     }
 
     async deleteProduct(id: string): Promise<AxiosResponse<ApiResponse<null>>> {
@@ -220,8 +349,56 @@ class ApiService {
         return this.api.post('/categories', data);
     }
 
+    async createCategoryWithImage(data: Partial<Category>, imageFile?: File): Promise<AxiosResponse<ApiResponse<Category>>> {
+        if (!imageFile) {
+            return this.createCategory(data);
+        }
+
+        const formData = new FormData();
+
+        // Add category data
+        if (data.name) formData.append('name', data.name);
+        if (data.description) formData.append('description', data.description);
+        if (data.sortOrder !== undefined) formData.append('sortOrder', String(data.sortOrder));
+        if (data.isActive !== undefined) formData.append('isActive', String(data.isActive));
+        if (data.isFeatured !== undefined) formData.append('isFeatured', String(data.isFeatured));
+
+        // Add image file
+        formData.append('image', imageFile);
+
+        return this.api.post('/categories', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+    }
+
     async updateCategory(id: string, data: Partial<Category>): Promise<AxiosResponse<ApiResponse<Category>>> {
         return this.api.patch(`/categories/${id}`, data);
+    }
+
+    async updateCategoryWithImage(id: string, data: Partial<Category>, imageFile?: File): Promise<AxiosResponse<ApiResponse<Category>>> {
+        if (!imageFile) {
+            return this.updateCategory(id, data);
+        }
+
+        const formData = new FormData();
+
+        // Add category data
+        if (data.name) formData.append('name', data.name);
+        if (data.description !== undefined) formData.append('description', data.description || '');
+        if (data.sortOrder !== undefined) formData.append('sortOrder', String(data.sortOrder));
+        if (data.isActive !== undefined) formData.append('isActive', String(data.isActive));
+        if (data.isFeatured !== undefined) formData.append('isFeatured', String(data.isFeatured));
+
+        // Add image file
+        formData.append('image', imageFile);
+
+        return this.api.patch(`/categories/${id}`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
     }
 
     async deleteCategory(id: string): Promise<AxiosResponse<ApiResponse<null>>> {
@@ -244,9 +421,38 @@ class ApiService {
     async createSubCategory(data: any): Promise<AxiosResponse<ApiResponse<SubCategory>>> {
         return this.api.post('/sub-categories', data);
     }
+    async createSubCategoryWithImage(data: any, imageFile?: File): Promise<AxiosResponse<ApiResponse<SubCategory>>> {
+        const formData = new FormData();
+        formData.append('name', data.name);
+        formData.append('categoryId', data.categoryId);
+        formData.append('isActive', data.isActive);
+        if (imageFile) {
+            formData.append('image', imageFile);
+        }
+        return this.api.post('/sub-categories', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+    }
 
     async updateSubCategory(id: string, data: any): Promise<AxiosResponse<ApiResponse<SubCategory>>> {
         return this.api.patch(`/sub-categories/${id}`, data);
+    }
+
+    async updateSubCategoryWithImage(id: string, data: any, imageFile?: File): Promise<AxiosResponse<ApiResponse<SubCategory>>> {
+        const formData = new FormData();
+        formData.append('name', data.name);
+        formData.append('categoryId', data.categoryId);
+        formData.append('isActive', data.isActive);
+        if (imageFile) {
+            formData.append('image', imageFile);
+        }
+        return this.api.patch(`/sub-categories/${id}`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
     }
 
     async deleteSubCategory(id: string): Promise<AxiosResponse<ApiResponse<null>>> {
