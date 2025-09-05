@@ -5,7 +5,7 @@ import { ArrowRight, Edit, Trash2, Package, Tag, DollarSign, Archive, Star, Load
 import { useProduct, useDeleteProduct } from '@/hooks/useProducts';
 import { useState } from 'react';
 import Modal from '@/components/ui/Modal';
-import { getImageUrl } from '@/utils/hepler';
+import { formatPrice, getImageUrl } from '@/utils/hepler';
 
 export default function ProductDetailsPage() {
     const router = useRouter();
@@ -41,15 +41,7 @@ export default function ProductDetailsPage() {
         }
     };
 
-    const formatPrice = (price: number, currency: string = 'SYP') => {
-        const currencyMap: { [key: string]: string } = {
-            'SYP': 'ل.س',
-            'USD': '$',
-            'EUR': '€',
-            'SAR': 'ر.س'
-        };
-        return `${price.toLocaleString()} ${currencyMap[currency] || currency}`;
-    };
+
 
     if (isLoading) {
         return (
@@ -143,11 +135,9 @@ export default function ProductDetailsPage() {
                                 )}
 
                                 {/* Additional Images */}
-                                {product.images && product.images.length > 1 && (
+                                {product.images && product.images.length > 0 && (
                                     <div className="grid grid-cols-4 gap-2">
                                         {product.images
-                                            .filter(img => img !== product.mainImage)
-                                            .slice(0, 4)
                                             .map((image, index) => (
                                                 <div key={index} className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
                                                     <img
@@ -229,10 +219,7 @@ export default function ProductDetailsPage() {
                                 <label className="text-sm font-medium text-gray-500">الكمية المتاحة</label>
                                 <p className="mt-1 text-gray-900 font-medium">{product.stockQuantity}</p>
                             </div>
-                            <div>
-                                <label className="text-sm font-medium text-gray-500">الحد الأدنى للمخزون</label>
-                                <p className="mt-1 text-gray-900">{product.minStockLevel}</p>
-                            </div>
+
                             <div>
                                 <label className="text-sm font-medium text-gray-500">العملة</label>
                                 <p className="mt-1 text-gray-900">{product.currency}</p>

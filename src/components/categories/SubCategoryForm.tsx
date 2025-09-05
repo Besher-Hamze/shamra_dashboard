@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Save, Tag, Upload } from 'lucide-react';
-import { SubCategory, CreateSubCategoryData } from '@/types';
+import { X, Save, Tag, Upload, Plus, Minus, Settings } from 'lucide-react';
+import { SubCategory, CreateSubCategoryData, SubCategoryType } from '@/types';
 
 interface SubCategoryFormProps {
     subCategory?: SubCategory;
@@ -24,6 +24,8 @@ export default function SubCategoryForm({
     const [formData, setFormData] = useState<CreateSubCategoryData>({
         name: '',
         categoryId: categoryId,
+        type: SubCategoryType.FREE_ATTR,
+        customFields: [],
         isActive: true,
     });
 
@@ -35,8 +37,14 @@ export default function SubCategoryForm({
             setFormData({
                 name: subCategory.name || '',
                 categoryId: subCategory.categoryId || categoryId,
+                type: subCategory.type || SubCategoryType.FREE_ATTR,
+                customFields: subCategory.customFields || [],
                 isActive: subCategory.isActive ?? true,
             });
+            // Set image preview if subcategory has existing image
+            if (subCategory.image) {
+                setImagePreview(subCategory.image);
+            }
         }
     }, [subCategory, categoryId]);
 
@@ -77,6 +85,27 @@ export default function SubCategoryForm({
         }
     };
 
+    const addCustomField = () => {
+        setFormData(prev => ({
+            ...prev,
+            customFields: [...(prev.customFields || []), '']
+        }));
+    };
+
+    const removeCustomField = (index: number) => {
+        setFormData(prev => ({
+            ...prev,
+            customFields: prev.customFields?.filter((_, i) => i !== index) || []
+        }));
+    };
+
+    const updateCustomField = (index: number, value: string) => {
+        setFormData(prev => ({
+            ...prev,
+            customFields: prev.customFields?.map((field, i) => i === index ? value : field) || []
+        }));
+    };
+
     return (
         <div className="modal-overlay">
             <div className="modal-content">
@@ -97,16 +126,89 @@ export default function SubCategoryForm({
                     <div className="space-y-6">
 
                         <div className="form-group">
-                            <label className="form-label">اسم الفئة الفرعية (بالإنجليزية) *</label>
+                            <label className="form-label">اسم الفئة الفرعية *</label>
                             <input
                                 type="text"
                                 value={formData.name}
                                 onChange={(e) => handleInputChange('name', e.target.value)}
                                 className="input-field"
                                 required
-                                placeholder="Subcategory Name in English"
+                                placeholder="اسم الفئة الفرعية"
                             />
                         </div>
+
+                        {/* Type Selection */}
+                        <div className="form-group">
+                            <label className="form-label">نوع الفئة الفرعية *</label>
+                            <select
+                                value={formData.type}
+                                onChange={(e) => handleInputChange('type', e.target.value as SubCategoryType)}
+                                className="input-field"
+                                required
+                            >
+                                <option value={SubCategoryType.FREE_ATTR}>خصائص حرة (Free Attributes)</option>
+                                <option value={SubCategoryType.CUSTOM_ATTR}>خصائص مخصصة (Custom Attributes)</option>
+                            </select>
+                            <p className="text-sm text-gray-500 mt-1">
+                                {formData.type === SubCategoryType.FREE_ATTR
+                                    ? 'يمكن للمنتجات في هذه الفئة إضافة أي خصائص'
+                                    : 'المنتجات محصورة بالخصائص المحددة أدناه'}
+                            </p>
+                        </div>
+
+                        {/* Custom Fields - Only show when type is CUSTOM_ATTR */}
+                        {formData.type === SubCategoryType.CUSTOM_ATTR && (
+                            <div className="form-group">
+                                <div className="flex items-center justify-between mb-3">
+                                    <label className="form-label flex items-center">
+                                        <Settings className="h-4 w-4 mr-2" />
+                                        الخصائص المخصصة
+                                    </label>
+                                    <button
+                                        type="button"
+                                        onClick={addCustomField}
+                                        className="btn-secondary text-sm flex items-center"
+                                    >
+                                        <Plus className="h-4 w-4 mr-1" />
+                                        إضافة خاصية
+                                    </button>
+                                </div>
+
+                                <div className="space-y-3 max-h-40 overflow-y-auto p-4">
+                                    {formData.customFields && formData.customFields.length > 0 ? (
+                                        formData.customFields.map((field, index) => (
+                                            <div key={index} className="flex items-center space-x-2 space-x-reverse ">
+                                                <input
+                                                    type="text"
+                                                    value={field}
+                                                    onChange={(e) => updateCustomField(index, e.target.value)}
+                                                    className="input-field flex-1"
+                                                    placeholder={`خاصية ${index + 1}`}
+                                                    required
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeCustomField(index)}
+                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                >
+                                                    <Minus className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-center py-4 text-gray-500 bg-gray-50 rounded-lg">
+                                            <Settings className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                                            <p>لا توجد خصائص مخصصة</p>
+                                            <p className="text-sm">اضغط على "إضافة خاصية" لإضافة خاصية جديدة</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <p className="text-sm text-gray-500 mt-2">
+                                    حدد الخصائص التي يمكن للمنتجات في هذه الفئة استخدامها (مثل: اللون، الحجم، المادة)
+                                </p>
+                            </div>
+                        )}
 
                         {/* Image Upload */}
                         <div className="form-group">

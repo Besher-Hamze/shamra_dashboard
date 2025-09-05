@@ -5,4 +5,13 @@ function getImageUrl(imageUrl?: string) {
     return `http://localhost:3000${imageUrl}`;
 }
 
-export { getImageUrl };
+const formatPrice = (price: number, currency: string = 'SYP') => {
+    const currencyMap: { [key: string]: string } = {
+        'SYP': 'ل.س',
+        'USD': '$',
+        'EUR': '€',
+        'SAR': 'ر.س'
+    };
+    return `${price.toLocaleString()} ${currencyMap[currency] || currency}`;
+};
+export { getImageUrl, formatPrice };

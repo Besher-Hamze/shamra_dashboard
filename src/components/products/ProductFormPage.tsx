@@ -6,7 +6,7 @@ import { useCreateProduct, useUpdateProduct, useCreateProductWithImages, useUpda
 import { useCategories } from '@/hooks/useCategories';
 import { useSubCategoriesByCategory } from '@/hooks/useSubCategories';
 import { useBranches } from '@/hooks/useBranches';
-import { Branch, Category, SubCategory, ProductStatus } from '@/types';
+import { Branch, Category, SubCategory, ProductStatus, SubCategoryType } from '@/types';
 import { getImageUrl } from '@/utils/hepler';
 
 interface ProductFormPageProps {
@@ -26,7 +26,6 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
         salePrice: 0,
         currency: 'SYP',
         stockQuantity: 0,
-        minStockLevel: 5,
         categoryId: '',
         subCategoryId: '',
         branches: [] as string[],
@@ -54,6 +53,9 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
 
     const { data: categoriesData } = useCategories();
     const { data: subCategoriesData } = useSubCategoriesByCategory(formData.categoryId);
+
+    // Get selected subcategory data
+    const selectedSubCategory = subCategoriesData?.find(sub => sub.id === formData.subCategoryId);
     const { data: branchesData } = useBranches({});
     const createProductMutation = useCreateProduct();
     const updateProductMutation = useUpdateProduct();
@@ -71,7 +73,6 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
                 salePrice: product.salePrice || 0,
                 currency: product.currency || 'SYP',
                 stockQuantity: product.stockQuantity || 0,
-                minStockLevel: product.minStockLevel || 5,
                 categoryId: product.categoryId || '',
                 subCategoryId: product.subCategoryId || '',
                 branches: product.branches?.map((b: any) => typeof b === 'string' ? b : b.id) || [],
@@ -109,6 +110,29 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
                 ...prev,
                 [field]: value,
                 subCategoryId: '', // This correctly resets sub-category when category changes
+                specifications: {}, // Clear specifications when category changes
+            }));
+        } else if (field === 'subCategoryId') {
+            // When subcategory changes, handle specifications based on the new subcategory type
+            const newSubCategory = subCategoriesData?.find(sub => sub.id === value);
+            let newSpecifications = {};
+
+            if (newSubCategory?.type === SubCategoryType.CUSTOM_ATTR && newSubCategory.customFields) {
+                // For custom attributes, only keep specifications that match the allowed fields
+                newSpecifications = Object.fromEntries(
+                    Object.entries(formData.specifications || {}).filter(([key]) =>
+                        newSubCategory.customFields?.includes(key)
+                    )
+                );
+            } else if (newSubCategory?.type === SubCategoryType.FREE_ATTR) {
+                // For free attributes, keep all existing specifications
+                newSpecifications = formData.specifications || {};
+            }
+
+            setFormData(prev => ({
+                ...prev,
+                [field]: value,
+                specifications: newSpecifications,
             }));
         } else {
             setFormData(prev => ({
@@ -237,7 +261,6 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
             salePrice: formData.salePrice ? Number(formData.salePrice) : undefined,
             currency: formData.currency || 'SYP',
             stockQuantity: Number(formData.stockQuantity) || 0,
-            minStockLevel: Number(formData.minStockLevel) || 5,
             categoryId: formData.categoryId,
             subCategoryId: formData.subCategoryId || undefined,
             branches: formData.branches || [],
@@ -433,7 +456,6 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
                             <option value="SYP">ليرة سورية (SYP)</option>
                             <option value="USD">دولار أمريكي (USD)</option>
                             <option value="EUR">يورو (EUR)</option>
-                            <option value="SAR">ريال سعودي (SAR)</option>
                         </select>
                     </div>
 
@@ -450,18 +472,6 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
                         />
                     </div>
 
-                    <div className="form-group">
-                        <label className="form-label">الحد الأدنى للمخزون *</label>
-                        <input
-                            type="number"
-                            min="0"
-                            value={formData.minStockLevel}
-                            onChange={(e) => handleInputChange('minStockLevel', e.target.value)}
-                            className="input-field"
-                            required
-                            placeholder="5"
-                        />
-                    </div>
 
 
 
@@ -707,37 +717,117 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                    {/* Specifications */}
+                    {/* Specifications - Dynamic based on subcategory type */}
                     <div className="form-group">
-                        <label className="form-label">المواصفات التقنية</label>
-                        <div className="space-y-2">
-                            <div className="flex space-x-2 space-x-reverse">
-                                <input
-                                    type="text"
-                                    value={specificationKey}
-                                    onChange={(e) => setSpecificationKey(e.target.value)}
-                                    className="input-field flex-1"
-                                    placeholder="المفتاح (مثل: اللون)"
-                                />
-                                <input
-                                    type="text"
-                                    value={specificationValue}
-                                    onChange={(e) => setSpecificationValue(e.target.value)}
-                                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSpecification())}
-                                    className="input-field flex-1"
-                                    placeholder="القيمة (مثل: أحمر)"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={addSpecification}
-                                    className="btn-secondary"
-                                >
-                                    إضافة
-                                </button>
-                            </div>
-                        </div>
+                        <label className="form-label flex items-center">
+                            المواصفات التقنية
+                            {selectedSubCategory && (
+                                <span className={`ml-2 px-2 py-1 text-xs rounded-full ${selectedSubCategory.type === SubCategoryType.FREE_ATTR
+                                    ? 'bg-green-100 text-green-700'
+                                    : 'bg-blue-100 text-blue-700'
+                                    }`}>
+                                    {selectedSubCategory.type === SubCategoryType.FREE_ATTR ? 'خصائص حرة' : 'خصائص مخصصة'}
+                                </span>
+                            )}
+                        </label>
 
-                        {formData.specifications && Object.keys(formData.specifications).length > 0 && (
+                        {/* Show different UI based on subcategory type */}
+                        {!selectedSubCategory ? (
+                            <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
+                                <InfoIcon className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                                <p>اختر فئة فرعية لتحديد نوع المواصفات</p>
+                            </div>
+                        ) : selectedSubCategory.type === SubCategoryType.FREE_ATTR ? (
+                            // Free attributes - allow any specifications
+                            <>
+                                <div className="space-y-2">
+                                    <div className="flex space-x-2 space-x-reverse">
+                                        <input
+                                            type="text"
+                                            value={specificationKey}
+                                            onChange={(e) => setSpecificationKey(e.target.value)}
+                                            className="input-field flex-1"
+                                            placeholder="المفتاح (مثل: اللون)"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={specificationValue}
+                                            onChange={(e) => setSpecificationValue(e.target.value)}
+                                            onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSpecification())}
+                                            className="input-field flex-1"
+                                            placeholder="القيمة (مثل: أحمر)"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={addSpecification}
+                                            className="btn-secondary"
+                                        >
+                                            إضافة
+                                        </button>
+                                    </div>
+                                </div>
+                                <p className="text-sm text-gray-500 mt-1">
+                                    يمكنك إضافة أي مواصفات تريدها لهذا المنتج
+                                </p>
+                            </>
+                        ) : (
+                            // Custom attributes - only allow predefined fields
+                            <>
+                                {selectedSubCategory.customFields && selectedSubCategory.customFields.length > 0 ? (
+                                    <div className="space-y-3">
+                                        {selectedSubCategory.customFields.map((field, index) => (
+                                            <div key={index} className="flex items-center space-x-2 space-x-reverse">
+                                                <label className="w-32 text-sm font-medium text-gray-700 text-right">
+                                                    {field}:
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={(formData.specifications as any)?.[field] || ''}
+                                                    onChange={(e) => {
+                                                        setFormData(prev => ({
+                                                            ...prev,
+                                                            specifications: {
+                                                                ...prev.specifications,
+                                                                [field]: e.target.value
+                                                            }
+                                                        }));
+                                                    }}
+                                                    className="input-field flex-1"
+                                                    placeholder={`أدخل ${field}`}
+                                                />
+                                                {(formData.specifications as any)?.[field] && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const newSpecs = { ...formData.specifications };
+                                                            delete newSpecs[field];
+                                                            setFormData(prev => ({
+                                                                ...prev,
+                                                                specifications: newSpecs
+                                                            }));
+                                                        }}
+                                                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                    >
+                                                        <X className="h-4 w-4" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        ))}
+                                        <p className="text-sm text-gray-500">
+                                            المواصفات محددة مسبقاً حسب الفئة الفرعية المختارة
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-6 text-gray-500 bg-gray-50 rounded-lg">
+                                        <Settings className="h-6 w-6 mx-auto mb-2 text-gray-400" />
+                                        <p>لا توجد خصائص مخصصة محددة لهذه الفئة</p>
+                                    </div>
+                                )}
+                            </>
+                        )}
+
+                        {/* Show current specifications */}
+                        {formData.specifications && Object.keys(formData.specifications).length > 0 && selectedSubCategory?.type === SubCategoryType.FREE_ATTR && (
                             <div className="mt-3 space-y-2">
                                 {Object.entries(formData.specifications).map(([key, value]) => (
                                     <div key={key} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">

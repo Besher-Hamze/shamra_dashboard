@@ -178,7 +178,6 @@ class ApiService {
         if (data.salePrice !== undefined) formData.append('salePrice', String(data.salePrice));
         if (data.currency) formData.append('currency', data.currency);
         if (data.stockQuantity !== undefined) formData.append('stockQuantity', String(data.stockQuantity));
-        if (data.minStockLevel !== undefined) formData.append('minStockLevel', String(data.minStockLevel));
         if (data.categoryId) formData.append('categoryId', data.categoryId);
         if (data.subCategoryId) formData.append('subCategoryId', data.subCategoryId);
         if (data.branches && data.branches.length > 0) formData.append('branches', JSON.stringify(data.branches));
@@ -227,7 +226,6 @@ class ApiService {
         if (data.salePrice !== undefined) formData.append('salePrice', String(data.salePrice));
         if (data.currency) formData.append('currency', data.currency);
         if (data.stockQuantity !== undefined) formData.append('stockQuantity', String(data.stockQuantity));
-        if (data.minStockLevel !== undefined) formData.append('minStockLevel', String(data.minStockLevel));
         if (data.categoryId) formData.append('categoryId', data.categoryId);
         if (data.subCategoryId !== undefined) formData.append('subCategoryId', data.subCategoryId || '');
         if (data.branches !== undefined) {
@@ -418,14 +416,18 @@ class ApiService {
         return this.api.get(`/sub-categories/category/${categoryId}`);
     }
 
-    async createSubCategory(data: any): Promise<AxiosResponse<ApiResponse<SubCategory>>> {
+    async createSubCategory(data: CreateSubCategoryData): Promise<AxiosResponse<ApiResponse<SubCategory>>> {
         return this.api.post('/sub-categories', data);
     }
-    async createSubCategoryWithImage(data: any, imageFile?: File): Promise<AxiosResponse<ApiResponse<SubCategory>>> {
+    async createSubCategoryWithImage(data: CreateSubCategoryData, imageFile?: File): Promise<AxiosResponse<ApiResponse<SubCategory>>> {
         const formData = new FormData();
         formData.append('name', data.name);
         formData.append('categoryId', data.categoryId);
-        formData.append('isActive', data.isActive);
+        formData.append('type', data.type);
+        if (data.customFields && data.customFields.length > 0) {
+            formData.append('customFields', JSON.stringify(data.customFields));
+        }
+        formData.append('isActive', String(data.isActive));
         if (imageFile) {
             formData.append('image', imageFile);
         }
@@ -436,15 +438,19 @@ class ApiService {
         });
     }
 
-    async updateSubCategory(id: string, data: any): Promise<AxiosResponse<ApiResponse<SubCategory>>> {
+    async updateSubCategory(id: string, data: UpdateSubCategoryData): Promise<AxiosResponse<ApiResponse<SubCategory>>> {
         return this.api.patch(`/sub-categories/${id}`, data);
     }
 
-    async updateSubCategoryWithImage(id: string, data: any, imageFile?: File): Promise<AxiosResponse<ApiResponse<SubCategory>>> {
+    async updateSubCategoryWithImage(id: string, data: UpdateSubCategoryData, imageFile?: File): Promise<AxiosResponse<ApiResponse<SubCategory>>> {
         const formData = new FormData();
-        formData.append('name', data.name);
-        formData.append('categoryId', data.categoryId);
-        formData.append('isActive', data.isActive);
+        if (data.name) formData.append('name', data.name);
+        if (data.categoryId) formData.append('categoryId', data.categoryId);
+        if (data.type) formData.append('type', data.type);
+        if (data.customFields && data.customFields.length > 0) {
+            formData.append('customFields', JSON.stringify(data.customFields));
+        }
+        if (data.isActive !== undefined) formData.append('isActive', String(data.isActive));
         if (imageFile) {
             formData.append('image', imageFile);
         }

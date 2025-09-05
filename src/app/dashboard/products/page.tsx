@@ -18,22 +18,35 @@ import { useProducts, useDeleteProduct, Product } from '@/hooks/useProducts';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table';
 import Pagination from '@/components/ui/Pagination';
 import Modal from '@/components/ui/Modal';
-import { getImageUrl } from '@/utils/hepler';
+import { formatPrice, getImageUrl } from '@/utils/hepler';
+import { useCategories } from '@/hooks/useCategories';
+import { useSubCategories } from '@/hooks/useSubCategories';
+import { useBranches } from '@/hooks/useBranches';
+import { Category, SubCategory } from '@/types';
+import { Branch } from '@/types';
 
 export default function ProductsPage() {
     const router = useRouter();
     const [currentPage, setCurrentPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
+    const [selectedSubCategory, setSelectedSubCategory] = useState('');
     const [showFilters, setShowFilters] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-
+    const { data: categories } = useCategories();
+    const { data: subCategories } = useSubCategories();
+    const { data: branches } = useBranches();
+    const [selectedBranch, setSelectedBranch] = useState('');
+    const [selectedStatus, setSelectedStatus] = useState('');
     const queryParams = {
         page: currentPage,
         limit: 10,
         search: searchTerm || undefined,
         categoryId: selectedCategory || undefined,
+        subCategoryId: selectedSubCategory || undefined,
+        branchId: selectedBranch || undefined,
+        status: selectedStatus || undefined,
     };
 
     const { data: productsData, isLoading, error } = useProducts(queryParams);
@@ -62,8 +75,6 @@ export default function ProductsPage() {
     const getStockStatus = (product: Product) => {
         if (product.stockQuantity === 0) {
             return { text: 'نفدت الكمية', color: 'bg-red-100 text-red-800' };
-        } else if (product.stockQuantity <= (product.minStockLevel || 5)) {
-            return { text: 'مخزون منخفض', color: 'bg-yellow-100 text-yellow-800' };
         }
         return { text: 'متوفر', color: 'bg-green-100 text-green-800' };
     };
@@ -149,9 +160,9 @@ export default function ProductsPage() {
                             </div>
                         </div>
                         <div className="mr-3">
-                            <p className="text-sm font-medium text-gray-600">مخزون منخفض</p>
+                            <p className="text-sm font-medium text-gray-600">المنتجات المخفضة علي السعر</p>
                             <p className="text-xl font-bold text-gray-900">
-                                {productsData?.data?.filter(p => p.stockQuantity <= (p.minStockLevel || 5)).length || 0}
+                                {productsData?.data?.filter(p => p.salePrice != undefined).length || 0}
                             </p>
                         </div>
                     </div>
@@ -198,6 +209,16 @@ export default function ProductsPage() {
                         <Filter className="h-5 w-5" />
                         <span>فلاتر</span>
                     </button>
+                    <button
+                        onClick={() => {
+                            setSelectedCategory('');
+                            setSelectedSubCategory('');
+                            setSelectedBranch('');
+                            setSelectedStatus('');
+                        }}
+                    >
+                        إعادة تعيين
+                    </button>
                 </div>
 
                 {showFilters && (
@@ -213,9 +234,42 @@ export default function ProductsPage() {
                                     className="input-field"
                                 >
                                     <option value="">جميع الفئات</option>
-                                    <option value="electronics">إلكترونيات</option>
-                                    <option value="clothing">ملابس</option>
-                                    <option value="home">أدوات منزلية</option>
+                                    {categories?.data.map((category: Category) => (
+                                        <option key={category.id} value={category.id}>{category.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            {/* الفئة الفرعية */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    الفئة الفرعية
+                                </label>
+                                <select
+                                    value={selectedSubCategory}
+                                    onChange={(e) => setSelectedSubCategory(e.target.value)}
+                                    className="input-field"
+                                >
+                                    <option value="">جميع الفئات الفرعية</option>
+                                    {subCategories?.filter(subCategory => subCategory.categoryId === selectedCategory).map((subCategory: SubCategory) => (
+                                        <option key={subCategory.id} value={subCategory.id}>{subCategory.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            {/* الفرع */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    الفرع
+                                </label>
+                                <select
+                                    value={selectedBranch}
+                                    onChange={(e) => setSelectedBranch(e.target.value)}
+                                    className="input-field"
+                                >
+                                    <option value="">جميع الفروع</option>
+                                    {branches?.data.map((branch) => (
+                                        <option key={branch.id} value={branch.id}>{branch.name}</option>
+                                    ))}
+
                                 </select>
                             </div>
                         </div>
@@ -297,11 +351,11 @@ export default function ProductsPage() {
                                             <TableCell>
                                                 <div className="text-sm">
                                                     <div className="font-medium text-gray-900">
-                                                        ${product.price.toLocaleString()}
+                                                        {formatPrice(product.price, product.currency)}
                                                     </div>
                                                     {product.salePrice && product.isOnSale && (
                                                         <div className="text-green-600">
-                                                            ${product.salePrice.toLocaleString()}
+                                                            {formatPrice(product.salePrice, product.currency)}
                                                         </div>
                                                     )}
                                                 </div>

@@ -22,7 +22,7 @@ import Pagination from '@/components/ui/Pagination';
 import Modal from '@/components/ui/Modal';
 import CategoryForm from '@/components/categories/CategoryForm';
 import SubCategoryForm from '@/components/categories/SubCategoryForm';
-import { Category, SubCategory } from '@/types';
+import { Category, SubCategory, SubCategoryType } from '@/types';
 import { getImageUrl } from '@/utils/hepler';
 
 export default function CategoriesPage() {
@@ -294,8 +294,19 @@ export default function CategoriesPage() {
                                         {subCategory.name}
                                         <span className="text-xs text-purple-600 mr-2">(فئة فرعية)</span>
                                     </div>
-                                    <div className="text-xs text-gray-500">
-                                        {subCategory.name}
+                                    <div className="text-xs text-gray-500 flex items-center space-x-2 space-x-reverse">
+                                        <span>{subCategory.name}</span>
+                                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${subCategory.type === SubCategoryType.FREE_ATTR
+                                            ? 'bg-green-100 text-green-700'
+                                            : 'bg-blue-100 text-blue-700'
+                                            }`}>
+                                            {subCategory.type === SubCategoryType.FREE_ATTR ? 'خصائص حرة' : 'خصائص مخصصة'}
+                                        </span>
+                                        {subCategory.type === SubCategoryType.CUSTOM_ATTR && subCategory.customFields && (
+                                            <span className="text-xs text-gray-400">
+                                                ({subCategory.customFields.length} خاصية)
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                             </div>

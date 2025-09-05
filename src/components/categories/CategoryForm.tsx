@@ -193,17 +193,7 @@ export default function CategoryForm({ category, onSuccess, onCancel }: Category
                                 اختر صورة
                             </label>
 
-                            {/* URL Input as alternative */}
-                            <div className="flex-1">
-                                <input
-                                    type="url"
-                                    name="image"
-                                    value={formData.image}
-                                    onChange={handleInputChange}
-                                    className="input-field"
-                                    placeholder="أو أدخل رابط الصورة"
-                                />
-                            </div>
+
                         </div>
 
                         {/* Image Preview */}
@@ -227,9 +217,7 @@ export default function CategoryForm({ category, onSuccess, onCancel }: Category
                             </div>
                         )}
 
-                        <p className="text-sm text-gray-500">
-                            يمكنك رفع صورة من جهازك أو إدخال رابط صورة
-                        </p>
+
                     </div>
                 </div>
             </div>

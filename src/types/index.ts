@@ -94,11 +94,18 @@ export interface Category {
 }
 
 // SubCategory types
+export enum SubCategoryType {
+    FREE_ATTR = 'free_attr',
+    CUSTOM_ATTR = 'custom_attr'
+}
+
 export interface SubCategory {
     id: string;
     name: string;
     categoryId: string;
-    image?: string
+    image?: string;
+    type: SubCategoryType;
+    customFields?: string[];
     category?: Category;
     isActive: boolean;
     createdAt: string;
@@ -108,6 +115,8 @@ export interface SubCategory {
 export interface CreateSubCategoryData {
     name: string;
     categoryId: string;
+    type: SubCategoryType;
+    customFields?: string[];
     isActive?: boolean;
 }
 
@@ -140,7 +149,6 @@ export interface Product {
     salePrice?: number;
     currency: string;
     stockQuantity: number;
-    minStockLevel: number;
     categoryId: string;
     category?: Category;
     subCategoryId?: string;
@@ -171,7 +179,6 @@ export interface CreateProductData {
     salePrice?: number;
     currency?: string;
     stockQuantity?: number;
-    minStockLevel?: number;
     categoryId: string;
     subCategoryId?: string;
     branches?: string[];

@@ -154,7 +154,7 @@ export default function BranchForm({ branch, onSubmit, onCancel, isLoading, erro
                                     value={formData.name}
                                     onChange={(e) => handleInputChange('name', e.target.value)}
                                     className="input-field"
-                                    placeholder="فرع الرياض الرئيسي"
+                                    placeholder="فرع حلب الرئيسي"
                                     required
                                 />
                             </div>
@@ -193,7 +193,7 @@ export default function BranchForm({ branch, onSubmit, onCancel, isLoading, erro
                                 value={formData.phone}
                                 onChange={(e) => handleInputChange('phone', e.target.value)}
                                 className="input-field"
-                                placeholder="+966 11 123 4567"
+                                placeholder="+963 11 123 4567"
                             />
                         </div>
 
@@ -204,7 +204,7 @@ export default function BranchForm({ branch, onSubmit, onCancel, isLoading, erro
                                 value={formData.email}
                                 onChange={(e) => handleInputChange('email', e.target.value)}
                                 className="input-field"
-                                placeholder="riyadh@company.com"
+                                placeholder="haleb@company.com"
                             />
                         </div>
 
@@ -270,7 +270,7 @@ export default function BranchForm({ branch, onSubmit, onCancel, isLoading, erro
                             value={formData.address.street}
                             onChange={(e) => handleInputChange('address.street', e.target.value)}
                             className="input-field"
-                            placeholder="شارع الملك فهد"
+                            placeholder="شارع اسكندرون"
                             required
                         />
                     </div>
@@ -282,7 +282,7 @@ export default function BranchForm({ branch, onSubmit, onCancel, isLoading, erro
                             value={formData.address.city}
                             onChange={(e) => handleInputChange('address.city', e.target.value)}
                             className="input-field"
-                            placeholder="الرياض"
+                            placeholder="حلب"
                             required
                         />
                     </div>
@@ -333,7 +333,7 @@ export default function BranchForm({ branch, onSubmit, onCancel, isLoading, erro
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
                     {daysOfWeek.map((day) => {
                         const dayHours = formData.operatingHours?.[day.key as keyof typeof formData.operatingHours];
                         const isClosed = !dayHours?.open && !dayHours?.close;
