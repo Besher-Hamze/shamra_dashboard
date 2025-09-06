@@ -13,6 +13,8 @@ import type {
     CustomersQueryParams,
     Order,
     CreateOrderData,
+    UpdateOrderData,
+    UpdateOrderStatusData,
     OrdersQueryParams,
     Category,
     CategoriesQueryParams,
@@ -285,16 +287,24 @@ class ApiService {
         return this.api.get(`/orders/by-id/${id}`);
     }
 
+    async getOrderByNumber(orderNumber: string): Promise<AxiosResponse<ApiResponse<Order>>> {
+        return this.api.get(`/orders/number/${orderNumber}`);
+    }
+
     async createOrder(data: CreateOrderData): Promise<AxiosResponse<ApiResponse<Order>>> {
         return this.api.post('/orders', data);
     }
 
-    async updateOrder(id: string, data: Partial<CreateOrderData>): Promise<AxiosResponse<ApiResponse<Order>>> {
+    async updateOrder(id: string, data: UpdateOrderData): Promise<AxiosResponse<ApiResponse<Order>>> {
         return this.api.patch(`/orders/${id}`, data);
     }
 
-    async updateOrderStatus(id: string, status: string): Promise<AxiosResponse<ApiResponse<Order>>> {
-        return this.api.patch(`/orders/${id}/status`, { status });
+    async updateOrderStatus(id: string, data: UpdateOrderStatusData): Promise<AxiosResponse<ApiResponse<Order>>> {
+        return this.api.patch(`/orders/${id}/status`, data);
+    }
+
+    async deleteOrder(id: string): Promise<AxiosResponse<ApiResponse<null>>> {
+        return this.api.delete(`/orders/${id}`);
     }
 
     async getOrderStats(): Promise<AxiosResponse<ApiResponse<OrderStats>>> {
@@ -303,6 +313,10 @@ class ApiService {
 
     async getRecentOrders(limit?: number): Promise<AxiosResponse<ApiResponse<Order[]>>> {
         return this.api.get('/orders/recent', { params: { limit } });
+    }
+
+    async getMyOrders(): Promise<AxiosResponse<ApiResponse<Order[]>>> {
+        return this.api.get('/orders/my');
     }
 
     // Customers endpoints

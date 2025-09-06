@@ -14,11 +14,14 @@ import {
     Truck
 } from 'lucide-react';
 import { useOrders, useUpdateOrderStatus, Order } from '@/hooks/useOrders';
+import { OrderStatus } from '@/types';
+import { useRouter } from 'next/navigation';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table';
 import Pagination from '@/components/ui/Pagination';
 import Modal from '@/components/ui/Modal';
 
 export default function OrdersPage() {
+    const router = useRouter();
     const [currentPage, setCurrentPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
@@ -30,7 +33,7 @@ export default function OrdersPage() {
         page: currentPage,
         limit: 10,
         search: searchTerm || undefined,
-        status: (statusFilter || undefined) as 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'CANCELLED' | undefined,
+        status: (statusFilter || undefined) as OrderStatus | undefined,
     };
 
     const { data: ordersData, isLoading, error } = useOrders(queryParams);
@@ -42,7 +45,7 @@ export default function OrdersPage() {
     };
 
     const handleStatusChange = (orderId: string, newStatus: string) => {
-        updateStatusMutation.mutate({ id: orderId, status: newStatus });
+        updateStatusMutation.mutate({ id: orderId, status: { status: newStatus as OrderStatus } });
     };
 
     const getStatusIcon = (status: string) => {
@@ -101,7 +104,10 @@ export default function OrdersPage() {
                             إدارة ومتابعة جميع الطلبات في النظام
                         </p>
                     </div>
-                    <button className="btn-primary flex items-center space-x-2 space-x-reverse">
+                    <button
+                        onClick={() => router.push('/dashboard/orders/add')}
+                        className="btn-primary flex items-center space-x-2 space-x-reverse"
+                    >
                         <Plus className="h-5 w-5" />
                         <span>إضافة طلب جديد</span>
                     </button>
@@ -120,7 +126,7 @@ export default function OrdersPage() {
                         <div className="mr-3">
                             <p className="text-sm font-medium text-gray-600">طلبات معلقة</p>
                             <p className="text-xl font-bold text-gray-900">
-                                {ordersData?.data?.filter(o => o.status === 'PENDING').length || 0}
+                                {ordersData?.data?.filter(o => o.status === OrderStatus.PENDING).length || 0}
                             </p>
                         </div>
                     </div>
@@ -136,7 +142,7 @@ export default function OrdersPage() {
                         <div className="mr-3">
                             <p className="text-sm font-medium text-gray-600">قيد المعالجة</p>
                             <p className="text-xl font-bold text-gray-900">
-                                {ordersData?.data?.filter(o => o.status === 'PROCESSING').length || 0}
+                                {ordersData?.data?.filter(o => o.status === OrderStatus.PROCESSING).length || 0}
                             </p>
                         </div>
                     </div>
@@ -152,7 +158,7 @@ export default function OrdersPage() {
                         <div className="mr-3">
                             <p className="text-sm font-medium text-gray-600">مكتملة</p>
                             <p className="text-xl font-bold text-gray-900">
-                                {ordersData?.data?.filter(o => o.status === 'COMPLETED').length || 0}
+                                {ordersData?.data?.filter(o => o.status === OrderStatus.SHIPPED).length || 0}
                             </p>
                         </div>
                     </div>
@@ -214,10 +220,10 @@ export default function OrdersPage() {
                                     className="input-field"
                                 >
                                     <option value="">جميع الحالات</option>
-                                    <option value="PENDING">معلق</option>
-                                    <option value="PROCESSING">قيد المعالجة</option>
-                                    <option value="COMPLETED">مكتمل</option>
-                                    <option value="CANCELLED">ملغي</option>
+                                    <option value={OrderStatus.PENDING}>معلق</option>
+                                    <option value={OrderStatus.PROCESSING}>قيد المعالجة</option>
+                                    <option value={OrderStatus.SHIPPED}>مكتمل</option>
+                                    <option value={OrderStatus.CANCELLED}>ملغي</option>
                                 </select>
                             </div>
                         </div>
@@ -289,10 +295,10 @@ export default function OrdersPage() {
                                                     onChange={(e) => handleStatusChange(order.id, e.target.value)}
                                                     className={`text-xs px-2 py-1 rounded-full border-0 focus:ring-2 focus:ring-blue-500 ${getStatusColor(order.status)}`}
                                                 >
-                                                    <option value="PENDING">معلق</option>
-                                                    <option value="PROCESSING">قيد المعالجة</option>
-                                                    <option value="COMPLETED">مكتمل</option>
-                                                    <option value="CANCELLED">ملغي</option>
+                                                    <option value={OrderStatus.PENDING}>معلق</option>
+                                                    <option value={OrderStatus.PROCESSING}>قيد المعالجة</option>
+                                                    <option value={OrderStatus.SHIPPED}>مكتمل</option>
+                                                    <option value={OrderStatus.CANCELLED}>ملغي</option>
                                                 </select>
                                             </div>
                                         </TableCell>
@@ -312,15 +318,17 @@ export default function OrdersPage() {
                                         <TableCell>
                                             <div className="flex items-center space-x-2 space-x-reverse">
                                                 <button
-                                                    onClick={() => handleViewOrder(order)}
+                                                    onClick={() => router.push(`/dashboard/orders/${order.id}`)}
                                                     className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded"
                                                     title="عرض"
                                                 >
                                                     <Eye className="h-4 w-4" />
                                                 </button>
                                                 <button
+                                                    onClick={() => router.push(`/dashboard/orders/${order.id}/edit`)}
                                                     className="p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded"
                                                     title="تعديل"
+                                                    disabled={order.status === OrderStatus.SHIPPED || order.status === OrderStatus.CANCELLED}
                                                 >
                                                     <Edit className="h-4 w-4" />
                                                 </button>

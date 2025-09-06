@@ -28,15 +28,15 @@ interface SidebarItem {
 }
 
 const navigation: SidebarItem[] = [
-  { name: 'الرئيسية', href: '/dashboard', icon: Home },
+  // { name: 'الرئيسية', href: '/dashboard', icon: Home },
+  { name: 'التقارير', href: '/dashboard/reports', icon: BarChart3 },
+  { name: 'الفروع', href: '/dashboard/branches', icon: Building2 },
   { name: "الاصناف", href: "/dashboard/categories", icon: Package },
   { name: 'المنتجات', href: '/dashboard/products', icon: ShoppingBag },
-  { name: 'الطلبات', href: '/dashboard/orders', icon: ShoppingCart },
-  { name: 'العملاء', href: '/dashboard/customers', icon: Users },
+  // { name: 'الطلبات', href: '/dashboard/orders', icon: ShoppingCart },
+  // { name: 'العملاء', href: '/dashboard/customers', icon: Users },
   // { name: 'المخزون', href: '/dashboard/inventory', icon: Package },
-  { name: 'الفروع', href: '/dashboard/branches', icon: Building2 },
-  { name: 'التقارير', href: '/dashboard/reports', icon: BarChart3 },
-  { name: 'الإشعارات', href: '/dashboard/notifications', icon: Bell, badge: 3 },
+  // { name: 'الإشعارات', href: '/dashboard/notifications', icon: Bell, badge: 3 },
 
 ];
 

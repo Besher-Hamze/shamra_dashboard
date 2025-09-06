@@ -255,19 +255,30 @@ export interface OrderItem {
     total?: number;
 }
 
+// Order Status
+export enum OrderStatus {
+    PENDING = 'pending',
+    CONFIRMED = 'confirmed',
+    PROCESSING = 'processing',
+    SHIPPED = 'shipped',
+    DELIVERED = 'delivered',
+    CANCELLED = 'cancelled',
+    RETURNED = 'returned',
+}
+
 export interface Order {
     id: string;
     orderNumber: string;
     customerId: string;
     customer?: Customer;
-    branchId: string;
+    branchId?: string;
     branch?: Branch;
     items: OrderItem[];
     subtotal: number;
     taxAmount: number;
     discountAmount: number;
     total: number;
-    status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'CANCELLED';
+    status: OrderStatus;
     isPaid: boolean;
     notes?: string;
     createdAt: string;
@@ -276,12 +287,24 @@ export interface Order {
 
 export interface CreateOrderData {
     customerId: string;
-    branchId: string;
+    branchId?: string;
     items: OrderItem[];
     taxAmount?: number;
     discountAmount?: number;
     notes?: string;
     isPaid?: boolean;
+}
+
+export interface UpdateOrderData {
+    status?: OrderStatus;
+    taxAmount?: number;
+    discountAmount?: number;
+    notes?: string;
+    isPaid?: boolean;
+}
+
+export interface UpdateOrderStatusData {
+    status: OrderStatus;
 }
 
 // Inventory types
@@ -564,7 +587,7 @@ export interface ProductsQueryParams extends BaseQueryParams {
 export interface OrdersQueryParams extends BaseQueryParams {
     customerId?: string;
     branchId?: string;
-    status?: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'CANCELLED';
+    status?: OrderStatus;
     isPaid?: boolean;
     startDate?: string;
     endDate?: string;

@@ -3,13 +3,15 @@ import { apiService } from '@/lib/api';
 import type {
     Order,
     CreateOrderData,
+    UpdateOrderData,
+    UpdateOrderStatusData,
     OrdersQueryParams,
     OrderStats,
     PaginatedResponse
 } from '@/types';
 
 // Re-export types from the main types file
-export type { Order, CreateOrderData, OrdersQueryParams, OrderStats } from '@/types';
+export type { Order, CreateOrderData, UpdateOrderData, UpdateOrderStatusData, OrdersQueryParams, OrderStats } from '@/types';
 
 export const useOrders = (params: OrdersQueryParams = {}) => {
     return useQuery<PaginatedResponse<Order>>({
@@ -75,7 +77,7 @@ export const useUpdateOrder = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({ id, data }: { id: string; data: Partial<CreateOrderData> }) => {
+        mutationFn: async ({ id, data }: { id: string; data: UpdateOrderData }) => {
             const response = await apiService.updateOrder(id, data);
             return response.data;
         },
@@ -91,7 +93,7 @@ export const useUpdateOrderStatus = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({ id, status }: { id: string; status: string }) => {
+        mutationFn: async ({ id, status }: { id: string; status: UpdateOrderStatusData }) => {
             const response = await apiService.updateOrderStatus(id, status);
             return response.data;
         },
@@ -100,5 +102,42 @@ export const useUpdateOrderStatus = () => {
             queryClient.invalidateQueries({ queryKey: ['orders', id] });
             queryClient.invalidateQueries({ queryKey: ['dashboard'] });
         },
+    });
+};
+
+export const useOrderByNumber = (orderNumber: string) => {
+    return useQuery<Order>({
+        queryKey: ['orders', 'number', orderNumber],
+        queryFn: async () => {
+            const response = await apiService.getOrderByNumber(orderNumber);
+            return response.data.data;
+        },
+        enabled: !!orderNumber,
+    });
+};
+
+export const useDeleteOrder = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (id: string) => {
+            const response = await apiService.deleteOrder(id);
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['orders'] });
+            queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+        },
+    });
+};
+
+export const useMyOrders = () => {
+    return useQuery<Order[]>({
+        queryKey: ['orders', 'my'],
+        queryFn: async () => {
+            const response = await apiService.getMyOrders();
+            return response.data.data;
+        },
+        staleTime: 2 * 60 * 1000,
     });
 };

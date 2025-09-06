@@ -29,7 +29,7 @@ export const useLogin = () => {
                 AuthService.setTokens(access_token, refresh_token);
                 AuthService.setUser(user);
                 queryClient.invalidateQueries();
-                router.push('/dashboard');
+                router.push('/dashboard/reports');
             }
         },
     });
