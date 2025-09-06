@@ -26,9 +26,33 @@ export class AuthService {
     private static readonly REFRESH_TOKEN_KEY = 'refresh_token';
     private static readonly USER_KEY = 'user';
 
+    // Check if we're in production and using HTTPS
+    private static isProduction(): boolean {
+        return process.env.NODE_ENV === 'production';
+    }
+
+    private static isHTTPS(): boolean {
+        if (typeof window === 'undefined') return false;
+        return window.location.protocol === 'https:';
+    }
+
     static setTokens(accessToken: string, refreshToken: string): void {
-        Cookies.set(this.ACCESS_TOKEN_KEY, accessToken, { expires: 7, secure: true });
-        Cookies.set(this.REFRESH_TOKEN_KEY, refreshToken, { expires: 30, secure: true });
+        const cookieOptions = {
+            expires: 7,
+            secure: this.isHTTPS(), // Only secure on HTTPS
+            sameSite: 'lax' as const,
+            path: '/'
+        };
+
+        const refreshOptions = {
+            expires: 30,
+            secure: this.isHTTPS(), // Only secure on HTTPS
+            sameSite: 'lax' as const,
+            path: '/'
+        };
+
+        Cookies.set(this.ACCESS_TOKEN_KEY, accessToken, cookieOptions);
+        Cookies.set(this.REFRESH_TOKEN_KEY, refreshToken, refreshOptions);
     }
 
     static getAccessToken(): string | undefined {
@@ -40,6 +64,7 @@ export class AuthService {
     }
 
     static setUser(user: User): void {
+        if (typeof window === 'undefined') return;
         localStorage.setItem(this.USER_KEY, JSON.stringify(user));
     }
 
@@ -61,9 +86,12 @@ export class AuthService {
     }
 
     static logout(): void {
-        Cookies.remove(this.ACCESS_TOKEN_KEY);
-        Cookies.remove(this.REFRESH_TOKEN_KEY);
-        localStorage.removeItem(this.USER_KEY);
+        Cookies.remove(this.ACCESS_TOKEN_KEY, { path: '/' });
+        Cookies.remove(this.REFRESH_TOKEN_KEY, { path: '/' });
+
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem(this.USER_KEY);
+        }
     }
 
     static isTokenExpired(token: string): boolean {
@@ -74,5 +102,18 @@ export class AuthService {
         } catch {
             return true;
         }
+    }
+
+    // Debug method to check cookie issues
+    static debugCookies(): void {
+        if (typeof window === 'undefined') return;
+
+        console.log('Debug Cookies:', {
+            protocol: window.location.protocol,
+            isHTTPS: this.isHTTPS(),
+            accessToken: this.getAccessToken(),
+            refreshToken: this.getRefreshToken(),
+            allCookies: document.cookie
+        });
     }
 }
