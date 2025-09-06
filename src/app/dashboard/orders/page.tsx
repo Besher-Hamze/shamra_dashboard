@@ -36,13 +36,9 @@ export default function OrdersPage() {
         status: (statusFilter || undefined) as OrderStatus | undefined,
     };
 
-    const { data: ordersData, isLoading, error } = useOrders(queryParams);
+    const { data: ordersData, isLoading } = useOrders(queryParams);
     const updateStatusMutation = useUpdateOrderStatus();
 
-    const handleViewOrder = (order: Order) => {
-        setSelectedOrder(order);
-        setIsViewModalOpen(true);
-    };
 
     const handleStatusChange = (orderId: string, newStatus: string) => {
         updateStatusMutation.mutate({ id: orderId, status: { status: newStatus as OrderStatus } });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import {
     BarChart3,
     TrendingUp,
@@ -55,24 +55,24 @@ export default function ReportsPage() {
     const { data: branchesData } = useBranches();
 
     // Additional report data
-    const { data: topSellingProducts, isLoading: topProductsLoading } = useTopSellingProducts({
+    const { data: topSellingProducts } = useTopSellingProducts({
         startDate: dateRange.startDate,
         endDate: dateRange.endDate,
         limit: 10,
         branchId: selectedBranch || undefined
     });
-    const { data: customerReport, isLoading: customerReportLoading } = useCustomerReport({
+    const { data: customerReport } = useCustomerReport({
         startDate: dateRange.startDate,
         endDate: dateRange.endDate
     });
-    const { data: inventoryReport, isLoading: inventoryReportLoading } = useInventoryReport({
+    const { data: inventoryReport } = useInventoryReport({
         branchId: selectedBranch || undefined
     });
     const { data: branchPerformance, isLoading: branchPerformanceLoading } = useBranchPerformanceReport({
         startDate: dateRange.startDate,
         endDate: dateRange.endDate
     });
-    const { data: productPerformance, isLoading: productPerformanceLoading } = useProductPerformanceReport({
+    const { data: productPerformance } = useProductPerformanceReport({
         startDate: dateRange.startDate,
         endDate: dateRange.endDate,
         branchId: selectedBranch || undefined
@@ -119,7 +119,7 @@ export default function ReportsPage() {
     const StatCard = ({ title, value, icon: Icon, change, changeType }: {
         title: string;
         value: string | number;
-        icon: any;
+        icon: React.ComponentType<{ className?: string }>;
         change?: string;
         changeType?: 'positive' | 'negative' | 'neutral';
     }) => (
@@ -249,28 +249,28 @@ export default function ReportsPage() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                     <StatCard
                                         title="طلبات اليوم"
-                                        value={(dashboardStats as any)?.today?.orders || 0}
+                                        value={(dashboardStats as Record<string, unknown>)?.today?.orders || 0}
                                         icon={ShoppingCart}
                                     />
                                     <StatCard
                                         title="إيرادات اليوم"
-                                        value={`$${(dashboardStats as any)?.today?.revenue || 0}`}
+                                        value={`$${(dashboardStats as Record<string, unknown>)?.today?.revenue || 0}`}
                                         icon={DollarSign}
                                         changeType="positive"
                                     />
                                     <StatCard
                                         title="إجمالي العملاء"
-                                        value={(dashboardStats as any)?.totals?.customers || 0}
+                                        value={(dashboardStats as Record<string, unknown>)?.totals?.customers || 0}
                                         icon={Users}
                                     />
                                     <StatCard
                                         title="إجمالي المنتجات"
-                                        value={(dashboardStats as any)?.totals?.products || 0}
+                                        value={(dashboardStats as Record<string, unknown>)?.totals?.products || 0}
                                         icon={Package}
                                     />
                                     <StatCard
                                         title="منتجات مخزون منخفض"
-                                        value={(dashboardStats as any)?.totals?.lowStockItems || 0}
+                                        value={(dashboardStats as Record<string, unknown>)?.totals?.lowStockItems || 0}
                                         icon={Package}
                                         changeType="negative"
                                     />
@@ -288,21 +288,21 @@ export default function ReportsPage() {
                                     <div className="bg-gray-200 rounded-lg h-64 animate-pulse"></div>
                                     <div className="bg-gray-200 rounded-lg h-64 animate-pulse"></div>
                                 </div>
-                            ) : salesData && (salesData as any).dailyData && (salesData as any).dailyData.length > 0 ? (
+                            ) : salesData && (salesData as Record<string, unknown>).dailyData && (salesData as Record<string, unknown>).dailyData.length > 0 ? (
                                 <div className="space-y-6">
                                     {/* Charts */}
                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                         <SimpleLineChart
-                                            data={(salesData as any).dailyData.map((item: any) => ({
-                                                label: item._id.date,
+                                            data={(salesData as Record<string, unknown>).dailyData.map((item: Record<string, unknown>) => ({
+                                                label: (item._id as Record<string, unknown>).date,
                                                 value: item.totalRevenue
                                             }))}
                                             title="اتجاه المبيعات"
                                             color="#10B981"
                                         />
                                         <SimpleBarChart
-                                            data={(salesData as any).dailyData.map((item: any) => ({
-                                                label: item._id.date,
+                                            data={(salesData as Record<string, unknown>).dailyData.map((item: Record<string, unknown>) => ({
+                                                label: (item._id as Record<string, unknown>).date,
                                                 value: item.totalOrders,
                                                 color: '#3B82F6'
                                             }))}
@@ -326,10 +326,10 @@ export default function ReportsPage() {
                                                     </tr>
                                                 </thead>
                                                 <tbody className="bg-white divide-y divide-gray-200">
-                                                    {(salesData as any).dailyData.map((item: any, index: number) => (
+                                                    {(salesData as Record<string, unknown>).dailyData.map((item: Record<string, unknown>, index: number) => (
                                                         <tr key={index} className="hover:bg-gray-50">
                                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                                {item._id.date}
+                                                                {(item._id as Record<string, unknown>).date}
                                                             </td>
                                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                                 ${item.totalRevenue}

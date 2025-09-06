@@ -64,7 +64,7 @@ export default function BranchesPage() {
             <span className="badge-danger">غير نشط</span>;
     };
 
-    const formatOperatingHours = (operatingHours: any) => {
+    const formatOperatingHours = (operatingHours: Record<string, { open: string; close: string }> | null) => {
         if (!operatingHours) return 'غير محدد';
 
         const monday = operatingHours.monday;
@@ -400,7 +400,7 @@ export default function BranchesPage() {
                             هل أنت متأكد من حذف الفرع؟
                         </h3>
                         <p className="text-gray-600 mb-6">
-                            سيتم حذف فرع "{selectedBranch.name}" نهائياً ولا يمكن التراجع عن هذا الإجراء.
+                            سيتم حذف فرع &quot;{selectedBranch.name}&quot; نهائياً ولا يمكن التراجع عن هذا الإجراء.
                         </p>
                         <div className="flex justify-center space-x-3 space-x-reverse">
                             <button

@@ -10,14 +10,14 @@ import {
     Eye,
     Calendar
 } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { useDashboardStats, useSalesData, useCategoryData, useRecentOrders } from '@/hooks/useDashboard';
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4'];
 
 
 export default function DashboardPage() {
-    const { data: stats, isLoading: statsLoading, error: statsError } = useDashboardStats();
+    const { data: stats, isLoading: statsLoading } = useDashboardStats();
     const { data: salesData, isLoading: salesLoading } = useSalesData();
     const { data: categoryData, isLoading: categoryLoading } = useCategoryData();
     const { data: recentOrdersData, isLoading: ordersLoading } = useRecentOrders(5);

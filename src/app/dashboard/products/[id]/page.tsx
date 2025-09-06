@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowRight, Edit, Trash2, Package, Tag, DollarSign, Archive, Star, Loader2, Eye, Ruler, FileText, Info, Image } from 'lucide-react';
+import { ArrowRight, Edit, Trash2, Package, Tag, DollarSign, Star, Loader2, FileText } from 'lucide-react';
 import { useProduct, useDeleteProduct } from '@/hooks/useProducts';
 import { useState } from 'react';
 import Modal from '@/components/ui/Modal';
@@ -89,7 +89,7 @@ export default function ProductDetailsPage() {
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">تفاصيل المنتج</h1>
                         <p className="text-gray-600 mt-1">
-                            عرض تفاصيل منتج "{product.name}"
+                            عرض تفاصيل منتج &quot;{product.name}&quot;
                         </p>
                     </div>
                 </div>
@@ -382,7 +382,7 @@ export default function ProductDetailsPage() {
                             هل أنت متأكد من حذف المنتج؟
                         </h3>
                         <p className="text-gray-600 mb-6">
-                            سيتم حذف منتج "{product.name}" نهائياً ولا يمكن التراجع عن هذا الإجراء.
+                            سيتم حذف منتج &quot;{product.name}&quot; نهائياً ولا يمكن التراجع عن هذا الإجراء.
                         </p>
                         <div className="flex justify-center space-x-3 space-x-reverse">
                             <button

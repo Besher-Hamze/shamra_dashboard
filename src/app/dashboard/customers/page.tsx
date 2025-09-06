@@ -38,7 +38,7 @@ export default function CustomersPage() {
         city: cityFilter || undefined,
     };
 
-    const { data: customersData, isLoading, error } = useCustomers(queryParams);
+    const { data: customersData, isLoading } = useCustomers(queryParams);
     const deleteCustomerMutation = useDeleteCustomer();
 
     const handleEdit = (customer: Customer) => {
@@ -519,7 +519,7 @@ export default function CustomersPage() {
             >
                 <div className="space-y-4">
                     <p className="text-gray-600">
-                        هل أنت متأكد من حذف العميل "{selectedCustomer?.firstName} {selectedCustomer?.lastName}"؟
+                        هل أنت متأكد من حذف العميل &quot;{selectedCustomer?.firstName} {selectedCustomer?.lastName}&quot;؟
                         لا يمكن التراجع عن هذا الإجراء.
                     </p>
                     <div className="flex justify-end space-x-3 space-x-reverse">

@@ -10,7 +10,6 @@ import {
     Eye,
     FolderOpen,
     Star,
-    ToggleLeft,
     ToggleRight,
     Tag,
     List
@@ -37,7 +36,6 @@ export default function CategoriesPage() {
 
     // Sub-category states
     const [selectedCategoryForSubs, setSelectedCategoryForSubs] = useState<Category | null>(null);
-    const [showSubCategories, setShowSubCategories] = useState(false);
     const [isCreateSubModalOpen, setIsCreateSubModalOpen] = useState(false);
     const [isEditSubModalOpen, setIsEditSubModalOpen] = useState(false);
     const [selectedSubCategory, setSelectedSubCategory] = useState<SubCategory | null>(null);
@@ -98,7 +96,7 @@ export default function CategoriesPage() {
     };
 
 
-    const handleCreateSubCategory = async (data: any, imageFile?: File) => {
+    const handleCreateSubCategory = async (data: Record<string, unknown>, imageFile?: File) => {
         try {
             if (imageFile) {
                 await createSubCategoryWithImageMutation.mutateAsync({ data, imageFile });
@@ -120,7 +118,7 @@ export default function CategoriesPage() {
         setIsEditSubModalOpen(true);
     };
 
-    const handleUpdateSubCategory = async (data: any, imageFile?: File) => {
+    const handleUpdateSubCategory = async (data: Record<string, unknown>, imageFile?: File) => {
         if (!selectedSubCategory) return;
         try {
             if (imageFile) {
@@ -598,7 +596,7 @@ export default function CategoriesPage() {
             >
                 <div className="space-y-4">
                     <p className="text-gray-600">
-                        هل أنت متأكد من حذف الفئة "{selectedCategory?.name}"؟
+                        هل أنت متأكد من حذف الفئة &quot;{selectedCategory?.name}&quot;؟
                     </p>
                     {selectedCategory?.subCategories && selectedCategory.subCategories.length > 0 && (
                         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -671,7 +669,7 @@ export default function CategoriesPage() {
             >
                 <div className="space-y-4">
                     <p className="text-gray-600">
-                        هل أنت متأكد من حذف الفئة الفرعية "{selectedSubCategory?.name}"؟
+                        هل أنت متأكد من حذف الفئة الفرعية &quot;{selectedSubCategory?.name}&quot;؟
                     </p>
                     <p className="text-gray-600 text-sm">
                         لا يمكن التراجع عن هذا الإجراء.

@@ -23,7 +23,6 @@ import { useCategories } from '@/hooks/useCategories';
 import { useSubCategories } from '@/hooks/useSubCategories';
 import { useBranches } from '@/hooks/useBranches';
 import { Category, SubCategory } from '@/types';
-import { Branch } from '@/types';
 
 export default function ProductsPage() {
     const router = useRouter();
@@ -440,7 +439,7 @@ export default function ProductsPage() {
             >
                 <div className="space-y-4">
                     <p className="text-gray-600">
-                        هل أنت متأكد من حذف المنتج "{selectedProduct?.name}"؟
+                        هل أنت متأكد من حذف المنتج &quot;{selectedProduct?.name}&quot;؟
                         لا يمكن التراجع عن هذا الإجراء.
                     </p>
                     <div className="flex justify-end space-x-3 space-x-reverse">

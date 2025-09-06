@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MapPin, Phone, Mail, Clock, Globe, Save, X } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, Save, X } from 'lucide-react';
 import { Branch } from '@/types';
 import { CreateBranchData } from '@/hooks/useBranches';
 
@@ -10,7 +10,7 @@ interface BranchFormProps {
     onSubmit: (data: CreateBranchData) => void;
     onCancel: () => void;
     isLoading?: boolean;
-    error?: any;
+    error?: Error | null;
     mode: 'add' | 'edit';
 }
 
@@ -100,7 +100,7 @@ export default function BranchForm({ branch, onSubmit, onCancel, isLoading, erro
         onSubmit(formData);
     };
 
-    const handleInputChange = (field: string, value: any) => {
+    const handleInputChange = (field: string, value: string | number | boolean) => {
         if (field.startsWith('address.')) {
             const addressField = field.split('.')[1];
             setFormData(prev => ({
@@ -419,7 +419,7 @@ export default function BranchForm({ branch, onSubmit, onCancel, isLoading, erro
             {error && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                     <p className="text-red-700 text-sm">
-                        {error?.response?.data?.message || error?.message || 'حدث خطأ أثناء حفظ الفرع'}
+                        {error?.message || 'حدث خطأ أثناء حفظ الفرع'}
                     </p>
                 </div>
             )}

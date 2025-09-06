@@ -10,7 +10,7 @@ interface SubCategoryFormProps {
     onSubmit: (data: CreateSubCategoryData, imageFile?: File) => void;
     onCancel: () => void;
     isLoading?: boolean;
-    error?: any;
+    error?: Error | null;
 }
 
 export default function SubCategoryForm({
@@ -53,7 +53,7 @@ export default function SubCategoryForm({
         onSubmit(formData, imageFile || undefined);
     };
 
-    const handleInputChange = (field: keyof CreateSubCategoryData, value: any) => {
+    const handleInputChange = (field: keyof CreateSubCategoryData, value: string | boolean | SubCategoryType | string[]) => {
         setFormData(prev => ({
             ...prev,
             [field]: value,

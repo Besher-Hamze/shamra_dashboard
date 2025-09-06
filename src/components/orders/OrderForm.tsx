@@ -12,7 +12,7 @@ interface OrderFormProps {
     onSubmit: (data: CreateOrderData | UpdateOrderData) => void;
     onCancel: () => void;
     isLoading?: boolean;
-    error?: any;
+    error?: Error | null;
     mode: 'create' | 'edit';
 }
 
@@ -66,7 +66,7 @@ export default function OrderForm({
         }
     }, [order]);
 
-    const handleInputChange = (field: keyof CreateOrderData, value: any) => {
+    const handleInputChange = (field: keyof CreateOrderData, value: string | number | boolean) => {
         setFormData(prev => ({
             ...prev,
             [field]: value,
@@ -527,7 +527,7 @@ export default function OrderForm({
                 {error && (
                     <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                         <p className="text-red-700 text-sm">
-                            {error?.response?.data?.message || error?.message || 'حدث خطأ أثناء حفظ الطلب'}
+                            {(error as any)?.response?.data?.message || error?.message || 'حدث خطأ أثناء حفظ الطلب'}
                         </p>
                     </div>
                 )}

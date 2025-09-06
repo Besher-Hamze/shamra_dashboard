@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowRight, Edit, Trash2, MapPin, Phone, Mail, Clock, Globe, Building2, Star, Loader2 } from 'lucide-react';
+import { ArrowRight, Edit, Trash2, MapPin, Phone, Mail, Clock, Building2, Star, Loader2 } from 'lucide-react';
 import { useBranch, useDeleteBranch } from '@/hooks/useBranches';
 import { useState } from 'react';
 import Modal from '@/components/ui/Modal';
@@ -79,7 +79,7 @@ export default function BranchDetailsPage() {
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">تفاصيل الفرع</h1>
                         <p className="text-gray-600 mt-1">
-                            عرض تفاصيل فرع "{branch.name}"
+                            عرض تفاصيل فرع &quot;{branch.name}&quot;
                         </p>
                     </div>
                 </div>
@@ -171,7 +171,7 @@ export default function BranchDetailsPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {Object.entries(branch.operatingHours)
                                     .filter(([day]) => !['_id', 'id'].includes(day))
-                                    .filter(([_, hours]) => (hours as any)?.open && (hours as any)?.close)
+                                    .filter(([_, hours]) => (hours as Record<string, { open: string; close: string }>)?.open && (hours as Record<string, { open: string; close: string }>)?.close)
                                     .map(([day, hours]) => (
                                         <div key={day} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
                                             <span className="text-gray-600 capitalize">
@@ -190,9 +190,9 @@ export default function BranchDetailsPage() {
                                                 })()}:
                                             </span>
                                             <span className="font-medium">
-                                                {(hours as any).open === 'closed' || (hours as any).close === 'closed'
+                                                {(hours as Record<string, { open: string; close: string }>).open === 'closed' || (hours as Record<string, { open: string; close: string }>).close === 'closed'
                                                     ? 'مغلق'
-                                                    : `${(hours as any).open} - ${(hours as any).close}`}
+                                                    : `${(hours as Record<string, { open: string; close: string }>).open} - ${(hours as Record<string, { open: string; close: string }>).close}`}
                                             </span>
                                         </div>
                                     ))}
@@ -270,7 +270,7 @@ export default function BranchDetailsPage() {
                             هل أنت متأكد من حذف الفرع؟
                         </h3>
                         <p className="text-gray-600 mb-6">
-                            سيتم حذف فرع "{branch.name}" نهائياً ولا يمكن التراجع عن هذا الإجراء.
+                            سيتم حذف فرع &quot;{branch.name}&quot; نهائياً ولا يمكن التراجع عن هذا الإجراء.
                         </p>
                         <div className="flex justify-center space-x-3 space-x-reverse">
                             <button

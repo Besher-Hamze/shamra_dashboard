@@ -11,9 +11,8 @@ import {
     RotateCcw,
     ArrowUpDown,
     Eye,
-    Edit
 } from 'lucide-react';
-import { useInventory, useLowStockItems, useInventoryStats, useAdjustStock, InventoryItem } from '@/hooks/useInventory';
+import { useInventory, useLowStockItems, useInventoryStats, InventoryItem } from '@/hooks/useInventory';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table';
 import Pagination from '@/components/ui/Pagination';
 import Modal from '@/components/ui/Modal';

@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowRight, Save, X, Loader2 } from 'lucide-react';
+import { ArrowRight, Loader2 } from 'lucide-react';
 import { useBranch, useUpdateBranch, CreateBranchData } from '@/hooks/useBranches';
 import BranchForm from '@/components/branches/BranchForm';
 
@@ -73,7 +72,7 @@ export default function EditBranchPage() {
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">تعديل الفرع</h1>
                         <p className="text-gray-600 mt-1">
-                            تعديل بيانات فرع "{branch.name}"
+                            تعديل بيانات فرع &quot;{branch.name}&quot;
                         </p>
                     </div>
                 </div>

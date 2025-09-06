@@ -15,23 +15,6 @@ export default function Header({ onMenuClick }: HeaderProps) {
   const [showProfile, setShowProfile] = useState(false);
   const user = AuthService.getUser();
 
-  // useEffect(() => {
-  //   const fetchUnreadCount = async () => {
-  //     try {
-  //       const response = await apiService.getUnreadCount();
-  //       if (response.data.success) {
-  //         setUnreadCount(response.data.data.count || 0);
-  //       }
-  //     } catch (error) {
-  //       console.error('Error fetching unread count:', error);
-  //     }
-  //   };
-
-  //   fetchUnreadCount();
-  //   // Poll for updates every 30 seconds
-  //   const interval = setInterval(fetchUnreadCount, 30000);
-  //   return () => clearInterval(interval);
-  // }, []);
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 h-16">

@@ -120,14 +120,6 @@ export default function LoginPage() {
                         </button>
                     </form>
 
-                    {/* Demo Credentials */}
-                    <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                        <p className="text-sm text-gray-600 mb-2 font-medium">بيانات تجريبية:</p>
-                        <div className="text-sm text-gray-500 space-y-1">
-                            <p>البريد الإلكتروني: ahmed@example.com</p>
-                            <p>كلمة المرور: 123456789</p>
-                        </div>
-                    </div>
                 </div>
 
                 {/* Footer */}

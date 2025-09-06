@@ -30,7 +30,6 @@ export default function CategoryForm({ category, onSuccess, onCancel }: Category
     const updateCategoryWithImageMutation = useUpdateCategoryWithImage();
 
     // Get categories for parent selection
-    const { data: categoriesData } = useCategories({ rootOnly: true });
 
     useEffect(() => {
         if (category) {
