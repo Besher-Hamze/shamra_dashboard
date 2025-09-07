@@ -209,6 +209,12 @@ export default function ProductDetailsPage() {
                                 <label className="text-sm font-medium text-gray-500">سعر التكلفة</label>
                                 <p className="mt-1 text-gray-900 font-medium">{formatPrice(product.costPrice, product.currency)}</p>
                             </div>
+                            {product.wholeSalePrice && (
+                                <div>
+                                    <label className="text-sm font-medium text-gray-500">سعر الجملة</label>
+                                    <p className="mt-1 text-gray-900 font-medium">{formatPrice(product.wholeSalePrice, product.currency)}</p>
+                                </div>
+                            )}
                             {product.salePrice && (
                                 <div>
                                     <label className="text-sm font-medium text-gray-500">سعر التخفيض</label>
