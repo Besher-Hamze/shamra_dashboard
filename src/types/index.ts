@@ -147,6 +147,7 @@ export interface Product {
     price: number;
     costPrice: number;
     salePrice?: number;
+    wholeSalePrice?: number;
     currency: string;
     stockQuantity: number;
     categoryId: string;
@@ -176,6 +177,7 @@ export interface CreateProductData {
     barcode?: string;
     price: number;
     costPrice: number;
+    wholeSalePrice?: number;
     salePrice?: number;
     currency?: string;
     stockQuantity?: number;
@@ -206,6 +208,7 @@ export interface UpdatePriceData {
     price?: number;
     salePrice?: number;
     isOnSale?: boolean;
+    wholeSalePrice?: number;
 }
 
 // Customer types

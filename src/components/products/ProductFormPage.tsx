@@ -24,6 +24,7 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
         price: 0,
         costPrice: 0,
         salePrice: 0,
+        wholeSalePrice: 0,
         currency: 'SYP',
         stockQuantity: 0,
         categoryId: '',
@@ -71,6 +72,7 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
                 price: product.price || 0,
                 costPrice: product.costPrice || 0,
                 salePrice: product.salePrice || 0,
+                wholeSalePrice: product.wholeSalePrice || 0,
                 currency: product.currency || 'SYP',
                 stockQuantity: product.stockQuantity || 0,
                 categoryId: product.categoryId || '',
@@ -259,6 +261,7 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
             price: Number(formData.price) || 0,
             costPrice: Number(formData.costPrice) || 0,
             salePrice: formData.salePrice ? Number(formData.salePrice) : undefined,
+            wholeSalePrice: formData.wholeSalePrice ? Number(formData.wholeSalePrice) : undefined,
             currency: formData.currency || 'SYP',
             stockQuantity: Number(formData.stockQuantity) || 0,
             categoryId: formData.categoryId,
@@ -428,6 +431,18 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
                             min="0"
                             value={formData.costPrice}
                             onChange={(e) => handleInputChange('costPrice', e.target.value)}
+                            className="input-field"
+                            placeholder="0.00"
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label">سعر الجملة</label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={formData.wholeSalePrice}
+                            onChange={(e) => handleInputChange('wholeSalePrice', e.target.value)}
                             className="input-field"
                             placeholder="0.00"
                         />

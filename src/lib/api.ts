@@ -177,6 +177,7 @@ class ApiService {
         if (data.barcode) formData.append('barcode', data.barcode);
         if (data.price !== undefined) formData.append('price', String(data.price));
         if (data.costPrice !== undefined) formData.append('costPrice', String(data.costPrice));
+        if (data.wholeSalePrice !== undefined) formData.append('wholeSalePrice', String(data.wholeSalePrice));
         if (data.salePrice !== undefined) formData.append('salePrice', String(data.salePrice));
         if (data.currency) formData.append('currency', data.currency);
         if (data.stockQuantity !== undefined) formData.append('stockQuantity', String(data.stockQuantity));
@@ -225,6 +226,7 @@ class ApiService {
         if (data.barcode !== undefined) formData.append('barcode', data.barcode || '');
         if (data.price !== undefined) formData.append('price', String(data.price));
         if (data.costPrice !== undefined) formData.append('costPrice', String(data.costPrice));
+        if (data.wholeSalePrice !== undefined) formData.append('wholeSalePrice', String(data.wholeSalePrice));
         if (data.salePrice !== undefined) formData.append('salePrice', String(data.salePrice));
         if (data.currency) formData.append('currency', data.currency);
         if (data.stockQuantity !== undefined) formData.append('stockQuantity', String(data.stockQuantity));
