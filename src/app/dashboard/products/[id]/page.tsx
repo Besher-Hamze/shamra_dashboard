@@ -191,46 +191,83 @@ export default function ProductDetailsPage() {
                         </div>
                     </div>
 
-                    {/* Pricing & Inventory Card */}
+                    {/* Branch Pricing & Inventory Card */}
                     <div className="card">
                         <div className="flex items-center space-x-3 space-x-reverse mb-6">
                             <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                                 <DollarSign className="h-6 w-6 text-green-600" />
                             </div>
-                            <h3 className="text-lg font-semibold text-gray-900">التسعير والمخزون</h3>
+                            <h3 className="text-lg font-semibold text-gray-900">تسعير الفروع والمخزون</h3>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div>
-                                <label className="text-sm font-medium text-gray-500">السعر الأساسي</label>
-                                <p className="mt-1 text-gray-900 font-bold text-lg">{formatPrice(product.price, product.currency)}</p>
-                            </div>
-                            <div>
-                                <label className="text-sm font-medium text-gray-500">سعر التكلفة</label>
-                                <p className="mt-1 text-gray-900 font-medium">{formatPrice(product.costPrice, product.currency)}</p>
-                            </div>
-                            {product.wholeSalePrice && (
-                                <div>
-                                    <label className="text-sm font-medium text-gray-500">سعر الجملة</label>
-                                    <p className="mt-1 text-gray-900 font-medium">{formatPrice(product.wholeSalePrice, product.currency)}</p>
-                                </div>
-                            )}
-                            {product.salePrice && (
-                                <div>
-                                    <label className="text-sm font-medium text-gray-500">سعر التخفيض</label>
-                                    <p className="mt-1 text-red-600 font-bold">{formatPrice(product.salePrice, product.currency)}</p>
-                                </div>
-                            )}
-                            <div>
-                                <label className="text-sm font-medium text-gray-500">الكمية المتاحة</label>
-                                <p className="mt-1 text-gray-900 font-medium">{product.stockQuantity}</p>
-                            </div>
+                        {product.branchPricing && product.branchPricing.length > 0 ? (
+                            <div className="space-y-6">
+                                {product.branchPricing.map((branchPricing, index) => (
+                                    <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <h4 className="text-lg font-medium text-gray-900">
+                                                فرع: {product.branchDetails?.find(b => b.id === branchPricing.branchId)?.name || `فرع ${index + 1}`}
+                                            </h4>
+                                            <div className="flex items-center space-x-2 space-x-reverse">
+                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${branchPricing.isActive
+                                                    ? 'bg-green-100 text-green-800'
+                                                    : 'bg-gray-100 text-gray-800'
+                                                    }`}>
+                                                    {branchPricing.isActive ? 'نشط' : 'غير نشط'}
+                                                </span>
+                                                {branchPricing.isOnSale && (
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                        في التخفيضات
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
 
-                            <div>
-                                <label className="text-sm font-medium text-gray-500">العملة</label>
-                                <p className="mt-1 text-gray-900">{product.currency}</p>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <div>
+                                                <label className="text-sm font-medium text-gray-500">السعر</label>
+                                                <p className="mt-1 text-gray-900 font-bold text-lg">
+                                                    {formatPrice(branchPricing.price, branchPricing.currency)}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <label className="text-sm font-medium text-gray-500">سعر التكلفة</label>
+                                                <p className="mt-1 text-gray-900 font-medium">
+                                                    {formatPrice(branchPricing.costPrice, branchPricing.currency)}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <label className="text-sm font-medium text-gray-500">سعر الجملة</label>
+                                                <p className="mt-1 text-gray-900 font-medium">
+                                                    {formatPrice(branchPricing.wholeSalePrice, branchPricing.currency)}
+                                                </p>
+                                            </div>
+                                            {branchPricing.salePrice && (
+                                                <div>
+                                                    <label className="text-sm font-medium text-gray-500">سعر التخفيض</label>
+                                                    <p className="mt-1 text-red-600 font-bold">
+                                                        {formatPrice(branchPricing.salePrice, branchPricing.currency)}
+                                                    </p>
+                                                </div>
+                                            )}
+                                            <div>
+                                                <label className="text-sm font-medium text-gray-500">الكمية المتاحة</label>
+                                                <p className="mt-1 text-gray-900 font-medium">{branchPricing.stockQuantity}</p>
+                                            </div>
+                                            <div>
+                                                <label className="text-sm font-medium text-gray-500">العملة</label>
+                                                <p className="mt-1 text-gray-900">{branchPricing.currency}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
-                        </div>
+                        ) : (
+                            <div className="text-center py-8 text-gray-500">
+                                <Package className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                                <p>لا توجد تسعير للفروع متاح</p>
+                            </div>
+                        )}
                     </div>
 
                     {/* Product Features */}
@@ -242,7 +279,7 @@ export default function ProductDetailsPage() {
                             <h3 className="text-lg font-semibold text-gray-900">خصائص المنتج</h3>
                         </div>
 
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
                             <div className="flex items-center">
                                 <input
                                     type="checkbox"
@@ -251,15 +288,6 @@ export default function ProductDetailsPage() {
                                     className="h-4 w-4 text-blue-600 border-gray-300 rounded"
                                 />
                                 <label className="mr-2 text-sm text-gray-700">منتج مميز</label>
-                            </div>
-                            <div className="flex items-center">
-                                <input
-                                    type="checkbox"
-                                    checked={product.isOnSale}
-                                    disabled
-                                    className="h-4 w-4 text-blue-600 border-gray-300 rounded"
-                                />
-                                <label className="mr-2 text-sm text-gray-700">في التخفيضات</label>
                             </div>
                             <div className="flex items-center">
                                 <input

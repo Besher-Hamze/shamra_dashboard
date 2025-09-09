@@ -175,15 +175,10 @@ class ApiService {
         if (data.name) formData.append('name', data.name);
         if (data.description) formData.append('description', data.description);
         if (data.barcode) formData.append('barcode', data.barcode);
-        if (data.price !== undefined) formData.append('price', String(data.price));
-        if (data.costPrice !== undefined) formData.append('costPrice', String(data.costPrice));
-        if (data.wholeSalePrice !== undefined) formData.append('wholeSalePrice', String(data.wholeSalePrice));
-        if (data.salePrice !== undefined) formData.append('salePrice', String(data.salePrice));
-        if (data.currency) formData.append('currency', data.currency);
-        if (data.stockQuantity !== undefined) formData.append('stockQuantity', String(data.stockQuantity));
         if (data.categoryId) formData.append('categoryId', data.categoryId);
         if (data.subCategoryId) formData.append('subCategoryId', data.subCategoryId);
         if (data.branches && data.branches.length > 0) formData.append('branches', JSON.stringify(data.branches));
+        if (data.branchPricing && data.branchPricing.length > 0) formData.append('branchPricing', JSON.stringify(data.branchPricing));
         if (data.brand) formData.append('brand', data.brand);
         if (data.specifications && Object.keys(data.specifications).length > 0) {
             formData.append('specifications', JSON.stringify(data.specifications));
@@ -191,7 +186,6 @@ class ApiService {
         if (data.status) formData.append('status', data.status);
         if (data.isActive !== undefined) formData.append('isActive', String(data.isActive));
         if (data.isFeatured !== undefined) formData.append('isFeatured', String(data.isFeatured));
-        if (data.isOnSale !== undefined) formData.append('isOnSale', String(data.isOnSale));
         if (data.tags && data.tags.length > 0) formData.append('tags', JSON.stringify(data.tags));
         if (data.keywords && data.keywords.length > 0) formData.append('keywords', JSON.stringify(data.keywords));
         if (data.sortOrder !== undefined) formData.append('sortOrder', String(data.sortOrder));
@@ -224,16 +218,13 @@ class ApiService {
         if (data.name) formData.append('name', data.name);
         if (data.description !== undefined) formData.append('description', data.description || '');
         if (data.barcode !== undefined) formData.append('barcode', data.barcode || '');
-        if (data.price !== undefined) formData.append('price', String(data.price));
-        if (data.costPrice !== undefined) formData.append('costPrice', String(data.costPrice));
-        if (data.wholeSalePrice !== undefined) formData.append('wholeSalePrice', String(data.wholeSalePrice));
-        if (data.salePrice !== undefined) formData.append('salePrice', String(data.salePrice));
-        if (data.currency) formData.append('currency', data.currency);
-        if (data.stockQuantity !== undefined) formData.append('stockQuantity', String(data.stockQuantity));
         if (data.categoryId) formData.append('categoryId', data.categoryId);
         if (data.subCategoryId !== undefined) formData.append('subCategoryId', data.subCategoryId || '');
         if (data.branches !== undefined) {
             formData.append('branches', data.branches && data.branches.length > 0 ? JSON.stringify(data.branches) : '[]');
+        }
+        if (data.branchPricing !== undefined) {
+            formData.append('branchPricing', data.branchPricing && data.branchPricing.length > 0 ? JSON.stringify(data.branchPricing) : '[]');
         }
         if (data.brand !== undefined) formData.append('brand', data.brand || '');
         if (data.specifications !== undefined) {
@@ -242,7 +233,6 @@ class ApiService {
         if (data.status) formData.append('status', data.status);
         if (data.isActive !== undefined) formData.append('isActive', String(data.isActive));
         if (data.isFeatured !== undefined) formData.append('isFeatured', String(data.isFeatured));
-        if (data.isOnSale !== undefined) formData.append('isOnSale', String(data.isOnSale));
         if (data.tags !== undefined) {
             formData.append('tags', data.tags && data.tags.length > 0 ? JSON.stringify(data.tags) : '[]');
         }

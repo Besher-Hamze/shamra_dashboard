@@ -140,23 +140,31 @@ export enum ProductStatus {
     OUT_OF_STOCK = 'out_of_stock',
 }
 
+// Branch Pricing types
+export interface BranchPricing {
+    branchId: string;
+    price: number;
+    costPrice: number;
+    wholeSalePrice: number;
+    salePrice?: number;
+    currency: string;
+    stockQuantity: number;
+    isOnSale: boolean;
+    isActive: boolean;
+}
+
 export interface Product {
     id: string;
     name: string;
     description?: string;
     barcode?: string;
-    price: number;
-    costPrice: number;
-    salePrice?: number;
-    wholeSalePrice?: number;
-    currency: string;
-    stockQuantity: number;
     categoryId: string;
     category?: Category;
     subCategoryId?: string;
     subCategory?: SubCategory;
     branches: string[]; // Array of branch IDs
     branchDetails?: Branch[]; // Populated branch details
+    branchPricing?: BranchPricing[]; // Branch-specific pricing
     images: string[];
     mainImage?: string;
     brand?: string;
@@ -164,7 +172,6 @@ export interface Product {
     status: ProductStatus;
     isActive: boolean;
     isFeatured: boolean;
-    isOnSale: boolean;
     tags: string[];
     keywords: string[];
     sortOrder: number;
@@ -176,15 +183,10 @@ export interface CreateProductData {
     name: string;
     description?: string;
     barcode?: string;
-    price: number;
-    costPrice: number;
-    wholeSalePrice?: number;
-    salePrice?: number;
-    currency?: string;
-    stockQuantity?: number;
     categoryId: string;
     subCategoryId?: string;
     branches?: string[];
+    branchPricing?: BranchPricing[];
     images?: string[];
     mainImage?: string;
     brand?: string;
@@ -192,7 +194,6 @@ export interface CreateProductData {
     status?: ProductStatus;
     isActive?: boolean;
     isFeatured?: boolean;
-    isOnSale?: boolean;
     tags?: string[];
     keywords?: string[];
     sortOrder?: number;

@@ -72,10 +72,30 @@ export default function ProductsPage() {
     };
 
     const getStockStatus = (product: Product) => {
-        if (product.stockQuantity === 0) {
+        // Check if any branch has stock
+        const hasStock = product.branchPricing?.some(bp => bp.stockQuantity > 0) || false;
+        if (!hasStock) {
             return { text: 'نفدت الكمية', color: 'bg-red-100 text-red-800' };
         }
         return { text: 'متوفر', color: 'bg-green-100 text-green-800' };
+    };
+
+    const getTotalStock = (product: Product) => {
+        return product.branchPricing?.reduce((total, bp) => total + bp.stockQuantity, 0) || 0;
+    };
+
+    const getMinPrice = (product: Product) => {
+        if (!product.branchPricing || product.branchPricing.length === 0) return 0;
+        return Math.min(...product.branchPricing.map(bp => bp.price));
+    };
+
+    const getMaxPrice = (product: Product) => {
+        if (!product.branchPricing || product.branchPricing.length === 0) return 0;
+        return Math.max(...product.branchPricing.map(bp => bp.price));
+    };
+
+    const hasSalePrice = (product: Product) => {
+        return product.branchPricing?.some(bp => bp.isOnSale && bp.salePrice) || false;
     };
 
     if (error) {
@@ -161,7 +181,7 @@ export default function ProductsPage() {
                         <div className="mr-3">
                             <p className="text-sm font-medium text-gray-600">المنتجات المخفضة علي السعر</p>
                             <p className="text-xl font-bold text-gray-900">
-                                {productsData?.data?.filter(p => p.salePrice != undefined).length || 0}
+                                {productsData?.data?.filter(p => hasSalePrice(p)).length || 0}
                             </p>
                         </div>
                     </div>
@@ -349,20 +369,29 @@ export default function ProductsPage() {
                                             </TableCell>
                                             <TableCell>
                                                 <div className="text-sm">
-                                                    <div className="font-medium text-gray-900">
-                                                        {formatPrice(product.price, product.currency)}
-                                                    </div>
-                                                    {product.salePrice && product.isOnSale && (
-                                                        <div className="text-green-600">
-                                                            {formatPrice(product.salePrice, product.currency)}
+                                                    {product.branchPricing && product.branchPricing.length > 0 ? (
+                                                        <div>
+                                                            <div className="font-medium text-gray-900">
+                                                                {getMinPrice(product) === getMaxPrice(product)
+                                                                    ? formatPrice(getMinPrice(product), product.branchPricing[0].currency)
+                                                                    : `${formatPrice(getMinPrice(product), product.branchPricing[0].currency)} - ${formatPrice(getMaxPrice(product), product.branchPricing[0].currency)}`
+                                                                }
+                                                            </div>
+                                                            {hasSalePrice(product) && (
+                                                                <div className="text-green-600 text-xs">
+                                                                    في التخفيضات
+                                                                </div>
+                                                            )}
                                                         </div>
+                                                    ) : (
+                                                        <span className="text-gray-500">-</span>
                                                     )}
                                                 </div>
                                             </TableCell>
                                             <TableCell>
                                                 <div className="text-sm">
                                                     <div className="font-medium text-gray-900">
-                                                        {product.stockQuantity}
+                                                        {getTotalStock(product)}
                                                     </div>
                                                     <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${stockStatus.color}`}>
                                                         {stockStatus.text}

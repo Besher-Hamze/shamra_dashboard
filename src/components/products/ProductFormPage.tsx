@@ -6,7 +6,7 @@ import { useCreateProduct, useUpdateProduct, useCreateProductWithImages, useUpda
 import { useCategories } from '@/hooks/useCategories';
 import { useSubCategoriesByCategory } from '@/hooks/useSubCategories';
 import { useBranches } from '@/hooks/useBranches';
-import { Branch, Category, SubCategory, ProductStatus, SubCategoryType } from '@/types';
+import { Branch, Category, SubCategory, ProductStatus, SubCategoryType, BranchPricing } from '@/types';
 import { getImageUrl } from '@/utils/hepler';
 
 interface ProductFormPageProps {
@@ -21,21 +21,15 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
         name: '',
         description: '',
         barcode: '',
-        price: 0,
-        costPrice: 0,
-        salePrice: 0,
-        wholeSalePrice: 0,
-        currency: 'SYP',
-        stockQuantity: 0,
         categoryId: '',
         subCategoryId: '',
         branches: [] as string[],
+        branchPricing: [] as BranchPricing[],
         brand: '',
         specifications: {},
         status: ProductStatus.ACTIVE,
         isActive: true,
         isFeatured: false,
-        isOnSale: false,
         tags: [] as string[],
         images: [] as string[],
         mainImage: '',
@@ -69,21 +63,15 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
                 name: product.name || '',
                 description: product.description || '',
                 barcode: product.barcode || '',
-                price: product.price || 0,
-                costPrice: product.costPrice || 0,
-                salePrice: product.salePrice || 0,
-                wholeSalePrice: product.wholeSalePrice || 0,
-                currency: product.currency || 'SYP',
-                stockQuantity: product.stockQuantity || 0,
                 categoryId: product.categoryId || '',
                 subCategoryId: product.subCategoryId || '',
                 branches: product.branches?.map((b: any) => typeof b === 'string' ? b : b.id) || [],
+                branchPricing: product.branchPricing || [],
                 brand: product.brand || '',
                 specifications: product.specifications || {},
                 status: product.status || ProductStatus.ACTIVE,
                 isActive: product.isActive ?? true,
                 isFeatured: product.isFeatured ?? false,
-                isOnSale: product.isOnSale ?? false,
                 tags: product.tags || [],
                 images: product.images || [],
                 mainImage: product.mainImage || '',
@@ -238,17 +226,76 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
         }
         setSelectedMainImage(null);
         setMainImagePreviewUrl('');
+        setFormData(prev => ({
+            ...prev,
+            mainImage: ''
+        }));
+    };
+
+    const removeExistingImage = (index: number) => {
+        setFormData(prev => ({
+            ...prev,
+            images: prev.images?.filter((_, i) => i !== index) || []
+        }));
     };
 
 
 
     const handleBranchChange = (branchId: string, checked: boolean) => {
-        setFormData(prev => ({
-            ...prev,
-            branches: checked
+        setFormData(prev => {
+            const newBranches = checked
                 ? [...(prev.branches || []), branchId]
-                : (prev.branches || []).filter(id => id !== branchId)
-        }));
+                : (prev.branches || []).filter(id => id !== branchId);
+
+            // Update branch pricing accordingly
+            let newBranchPricing = [...(prev.branchPricing || [])];
+
+            if (checked) {
+                // Add new branch pricing if it doesn't exist
+                const existingPricing = newBranchPricing.find(p => p.branchId === branchId);
+                if (!existingPricing) {
+                    newBranchPricing.push({
+                        branchId,
+                        price: 0,
+                        costPrice: 0,
+                        wholeSalePrice: 0,
+                        salePrice: undefined,
+                        currency: 'SYP',
+                        stockQuantity: 0,
+                        isOnSale: false,
+                        isActive: true
+                    });
+                }
+            } else {
+                // Remove branch pricing
+                newBranchPricing = newBranchPricing.filter(p => p.branchId !== branchId);
+            }
+
+            return {
+                ...prev,
+                branches: newBranches,
+                branchPricing: newBranchPricing
+            };
+        });
+    };
+
+    const handleBranchPricingChange = (branchId: string, field: keyof BranchPricing, value: any) => {
+        setFormData(prev => {
+            const newBranchPricing = [...(prev.branchPricing || [])];
+            const existingIndex = newBranchPricing.findIndex(p => p.branchId === branchId);
+
+            if (existingIndex >= 0) {
+                newBranchPricing[existingIndex] = {
+                    ...newBranchPricing[existingIndex],
+                    [field]: value
+                };
+            }
+
+            return {
+                ...prev,
+                branchPricing: newBranchPricing
+            };
+        });
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -258,15 +305,10 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
             name: formData.name,
             description: formData.description || undefined,
             barcode: formData.barcode || undefined,
-            price: Number(formData.price) || 0,
-            costPrice: Number(formData.costPrice) || 0,
-            salePrice: formData.salePrice ? Number(formData.salePrice) : undefined,
-            wholeSalePrice: formData.wholeSalePrice ? Number(formData.wholeSalePrice) : undefined,
-            currency: formData.currency || 'SYP',
-            stockQuantity: Number(formData.stockQuantity) || 0,
             categoryId: formData.categoryId,
             subCategoryId: formData.subCategoryId || undefined,
             branches: formData.branches || [],
+            branchPricing: formData.branchPricing || [],
             images: formData.images || [],
             mainImage: formData.mainImage || undefined,
             brand: formData.brand || undefined,
@@ -274,7 +316,6 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
             status: formData.status as ProductStatus,
             isActive: formData.isActive ?? true,
             isFeatured: formData.isFeatured ?? false,
-            isOnSale: formData.isOnSale ?? false,
             tags: formData.tags || [],
             keywords: formData.keywords || [],
             sortOrder: Number(formData.sortOrder) || 0,
@@ -399,97 +440,16 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
                 </div>
             </div>
 
-            {/* Pricing & Inventory */}
+            {/* Product Settings */}
             <div className="space-y-6">
                 <div className="flex items-center space-x-3 space-x-reverse pb-4 border-b border-gray-200">
-                    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                        <DollarSign className="h-5 w-5 text-green-600" />
+                    <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <Settings className="h-5 w-5 text-gray-600" />
                     </div>
-                    <h3 className="text-lg font-medium text-gray-900">التسعير والمخزون</h3>
+                    <h3 className="text-lg font-medium text-gray-900">إعدادات المنتج</h3>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div className="form-group">
-                        <label className="form-label">السعر الأساسي *</label>
-                        <input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            value={formData.price}
-                            onChange={(e) => handleInputChange('price', e.target.value)}
-                            className="input-field"
-                            required
-                            placeholder="0.00"
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label className="form-label">سعر التكلفة</label>
-                        <input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            value={formData.costPrice}
-                            onChange={(e) => handleInputChange('costPrice', e.target.value)}
-                            className="input-field"
-                            placeholder="0.00"
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label className="form-label">سعر الجملة</label>
-                        <input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            value={formData.wholeSalePrice}
-                            onChange={(e) => handleInputChange('wholeSalePrice', e.target.value)}
-                            className="input-field"
-                            placeholder="0.00"
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label className="form-label">سعر التخفيض</label>
-                        <input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            value={formData.salePrice}
-                            onChange={(e) => handleInputChange('salePrice', e.target.value)}
-                            className="input-field"
-                            placeholder="0.00"
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label className="form-label">العملة</label>
-                        <select
-                            value={formData.currency}
-                            onChange={(e) => handleInputChange('currency', e.target.value)}
-                            className="select-field"
-                        >
-                            <option value="SYP">ليرة سورية (SYP)</option>
-                            <option value="USD">دولار أمريكي (USD)</option>
-                            <option value="EUR">يورو (EUR)</option>
-                        </select>
-                    </div>
-
-                    <div className="form-group">
-                        <label className="form-label">الكمية المتاحة *</label>
-                        <input
-                            type="number"
-                            min="0"
-                            value={formData.stockQuantity}
-                            onChange={(e) => handleInputChange('stockQuantity', e.target.value)}
-                            className="input-field"
-                            required
-                            placeholder="0"
-                        />
-                    </div>
-
-
-
-
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="form-group">
                         <label className="form-label">ترتيب العرض</label>
                         <input
@@ -500,6 +460,32 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
                             className="input-field"
                             placeholder="0"
                         />
+                    </div>
+
+                    <div className="flex items-center">
+                        <input
+                            type="checkbox"
+                            id="isActive"
+                            checked={formData.isActive}
+                            onChange={(e) => handleInputChange('isActive', e.target.checked)}
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <label htmlFor="isActive" className="mr-2 text-sm text-gray-700">
+                            المنتج نشط
+                        </label>
+                    </div>
+
+                    <div className="flex items-center">
+                        <input
+                            type="checkbox"
+                            id="isFeatured"
+                            checked={formData.isFeatured}
+                            onChange={(e) => handleInputChange('isFeatured', e.target.checked)}
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <label htmlFor="isFeatured" className="mr-2 text-sm text-gray-700">
+                            منتج مميز
+                        </label>
                     </div>
                 </div>
             </div>
@@ -585,6 +571,136 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
                         ))}
                     </div>
                 </div>
+
+                {/* Branch Pricing Section */}
+                {formData.branches && formData.branches.length > 0 && (
+                    <div className="form-group">
+                        <label className="form-label">تسعير الفروع</label>
+                        <div className="mt-4 space-y-6">
+                            {formData.branches.map((branchId) => {
+                                const branch = branchesData?.data?.find((b: Branch) => b.id === branchId);
+                                const branchPricing = formData.branchPricing?.find(p => p.branchId === branchId);
+
+                                if (!branch || !branchPricing) return null;
+
+                                return (
+                                    <div key={branchId} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                                        <h4 className="text-lg font-medium text-gray-900 mb-4">
+                                            تسعير فرع: {(branch as any).nameAr || branch.name}
+                                        </h4>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                            <div className="form-group">
+                                                <label className="form-label">السعر</label>
+                                                <input
+                                                    type="number"
+                                                    step="0.01"
+                                                    min="0"
+                                                    value={branchPricing.price}
+                                                    onChange={(e) => handleBranchPricingChange(branchId, 'price', Number(e.target.value))}
+                                                    className="input-field"
+                                                    placeholder="0.00"
+                                                />
+                                            </div>
+
+                                            <div className="form-group">
+                                                <label className="form-label">سعر التكلفة</label>
+                                                <input
+                                                    type="number"
+                                                    step="0.01"
+                                                    min="0"
+                                                    value={branchPricing.costPrice}
+                                                    onChange={(e) => handleBranchPricingChange(branchId, 'costPrice', Number(e.target.value))}
+                                                    className="input-field"
+                                                    placeholder="0.00"
+                                                />
+                                            </div>
+
+                                            <div className="form-group">
+                                                <label className="form-label">سعر الجملة</label>
+                                                <input
+                                                    type="number"
+                                                    step="0.01"
+                                                    min="0"
+                                                    value={branchPricing.wholeSalePrice}
+                                                    onChange={(e) => handleBranchPricingChange(branchId, 'wholeSalePrice', Number(e.target.value))}
+                                                    className="input-field"
+                                                    placeholder="0.00"
+                                                />
+                                            </div>
+
+                                            <div className="form-group">
+                                                <label className="form-label">سعر التخفيض</label>
+                                                <input
+                                                    type="number"
+                                                    step="0.01"
+                                                    min="0"
+                                                    value={branchPricing.salePrice || ''}
+                                                    onChange={(e) => handleBranchPricingChange(branchId, 'salePrice', e.target.value ? Number(e.target.value) : undefined)}
+                                                    className="input-field"
+                                                    placeholder="0.00"
+                                                />
+                                            </div>
+
+                                            <div className="form-group">
+                                                <label className="form-label">العملة</label>
+                                                <select
+                                                    value={branchPricing.currency}
+                                                    onChange={(e) => handleBranchPricingChange(branchId, 'currency', e.target.value)}
+                                                    className="select-field"
+                                                >
+                                                    <option value="SYP">ليرة سورية (SYP)</option>
+                                                    <option value="USD">دولار أمريكي (USD)</option>
+                                                    <option value="EUR">يورو (EUR)</option>
+                                                </select>
+                                            </div>
+
+                                            <div className="form-group">
+                                                <label className="form-label">الكمية</label>
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    value={branchPricing.stockQuantity}
+                                                    onChange={(e) => handleBranchPricingChange(branchId, 'stockQuantity', Number(e.target.value))}
+                                                    className="input-field"
+                                                    placeholder="0"
+                                                />
+                                            </div>
+
+                                            <div className="flex items-center space-x-4 space-x-reverse">
+                                                <div className="flex items-center">
+                                                    <input
+                                                        type="checkbox"
+                                                        id={`isOnSale-${branchId}`}
+                                                        checked={branchPricing.isOnSale}
+                                                        onChange={(e) => handleBranchPricingChange(branchId, 'isOnSale', e.target.checked)}
+                                                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                                    />
+                                                    <label htmlFor={`isOnSale-${branchId}`} className="mr-2 text-sm text-gray-700">
+                                                        في التخفيضات
+                                                    </label>
+                                                </div>
+
+                                                <div className="flex items-center">
+                                                    <input
+                                                        type="checkbox"
+                                                        id={`isActive-${branchId}`}
+                                                        checked={branchPricing.isActive}
+                                                        onChange={(e) => handleBranchPricingChange(branchId, 'isActive', e.target.checked)}
+                                                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                                    />
+                                                    <label htmlFor={`isActive-${branchId}`} className="mr-2 text-sm text-gray-700">
+                                                        نشط
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Images */}
@@ -619,11 +735,11 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
                             </label>
                         </div>
 
-                        {(mainImagePreviewUrl || (product?.mainImage && !selectedMainImage)) && (
+                        {(mainImagePreviewUrl || (formData.mainImage && !selectedMainImage)) && (
                             <div className="mt-4">
                                 <div className="relative inline-block">
                                     <img
-                                        src={mainImagePreviewUrl || getImageUrl(product?.mainImage)}
+                                        src={mainImagePreviewUrl || getImageUrl(formData.mainImage)}
                                         alt="الصورة الرئيسية"
                                         className="w-32 h-32 object-cover rounded-lg"
                                     />
@@ -669,17 +785,25 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
                         </div>
 
                         {/* Display existing images from product */}
-                        {product?.images && product.images.length > 0 && (
+                        {formData.images && formData.images.length > 0 && (
                             <div className="mt-4">
                                 <p className="text-sm font-medium text-gray-700 mb-2">الصور الحالية:</p>
                                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                    {product.images.map((image, index) => (
+                                    {formData.images.map((image, index) => (
                                         <div key={`existing-${index}`} className="relative">
                                             <img
                                                 src={getImageUrl(image)}
                                                 alt={`صورة ${index + 1}`}
                                                 className="w-full h-24 object-cover rounded-lg"
                                             />
+                                            <button
+                                                type="button"
+                                                onClick={() => removeExistingImage(index)}
+                                                className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full p-1 hover:bg-red-700"
+                                                title="حذف الصورة"
+                                            >
+                                                <X className="h-3 w-3" />
+                                            </button>
                                             <div className="absolute bottom-1 left-1 bg-gray-600 text-white text-xs px-1 py-0.5 rounded">
                                                 موجودة
                                             </div>
@@ -947,56 +1071,6 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
                 </div>
             </div>
 
-            {/* Product Settings */}
-            <div className="space-y-6">
-                <div className="flex items-center space-x-3 space-x-reverse pb-4 border-b border-gray-200">
-                    <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                        <Settings className="h-5 w-5 text-gray-600" />
-                    </div>
-                    <h3 className="text-lg font-medium text-gray-900">إعدادات المنتج</h3>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="flex items-center">
-                        <input
-                            type="checkbox"
-                            id="isActive"
-                            checked={formData.isActive}
-                            onChange={(e) => handleInputChange('isActive', e.target.checked)}
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                        />
-                        <label htmlFor="isActive" className="mr-2 text-sm text-gray-700">
-                            المنتج نشط
-                        </label>
-                    </div>
-
-                    <div className="flex items-center">
-                        <input
-                            type="checkbox"
-                            id="isFeatured"
-                            checked={formData.isFeatured}
-                            onChange={(e) => handleInputChange('isFeatured', e.target.checked)}
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                        />
-                        <label htmlFor="isFeatured" className="mr-2 text-sm text-gray-700">
-                            منتج مميز
-                        </label>
-                    </div>
-
-                    <div className="flex items-center">
-                        <input
-                            type="checkbox"
-                            id="isOnSale"
-                            checked={formData.isOnSale}
-                            onChange={(e) => handleInputChange('isOnSale', e.target.checked)}
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                        />
-                        <label htmlFor="isOnSale" className="mr-2 text-sm text-gray-700">
-                            في التخفيضات
-                        </label>
-                    </div>
-                </div>
-            </div>
 
             {/* Form Actions */}
             <div className="flex justify-end space-x-4 space-x-reverse pt-6 border-t border-gray-200">
@@ -1012,7 +1086,7 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
                 <button
                     type="submit"
                     className="btn-primary flex items-center"
-                    disabled={isLoading || !formData.name || !formData.price || !formData.categoryId}
+                    disabled={isLoading || !formData.name || !formData.categoryId}
                 >
                     {isLoading ? (
                         <>
