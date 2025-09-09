@@ -81,7 +81,7 @@ export const useUpdateSubCategory = () => {
 
     return useMutation({
         mutationFn: async (data: UpdateSubCategoryData) => {
-            const response = await apiService.updateSubCategory(data.id, data);
+            const response = await apiService.updateSubCategoryWithImage(data.id, data);
             return response.data;
         },
         onSuccess: (data, variables) => {

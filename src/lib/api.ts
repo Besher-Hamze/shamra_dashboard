@@ -392,9 +392,9 @@ class ApiService {
     }
 
     async updateCategoryWithImage(id: string, data: Partial<Category>, imageFile?: File): Promise<AxiosResponse<ApiResponse<Category>>> {
-        if (!imageFile) {
-            return this.updateCategory(id, data);
-        }
+        // if (!imageFile) {
+        //     return this.updateCategory(id, data);
+        // }
 
         const formData = new FormData();
 
@@ -405,8 +405,9 @@ class ApiService {
         if (data.isActive !== undefined) formData.append('isActive', String(data.isActive));
         if (data.isFeatured !== undefined) formData.append('isFeatured', String(data.isFeatured));
 
+
         // Add image file
-        formData.append('image', imageFile);
+        formData.append('image', imageFile || data.image || '');
 
         return this.api.patch(`/categories/${id}`, formData, {
             headers: {
@@ -467,9 +468,8 @@ class ApiService {
             formData.append('customFields', JSON.stringify(data.customFields));
         }
         if (data.isActive !== undefined) formData.append('isActive', String(data.isActive));
-        if (imageFile) {
-            formData.append('image', imageFile);
-        }
+        formData.append('image', imageFile || data.image || '');
+
         return this.api.patch(`/sub-categories/${id}`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',

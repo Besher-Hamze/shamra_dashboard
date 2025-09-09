@@ -118,6 +118,7 @@ export interface CreateSubCategoryData {
     type: SubCategoryType;
     customFields?: string[];
     isActive?: boolean;
+    image?: string;
 }
 
 export interface UpdateSubCategoryData extends Partial<CreateSubCategoryData> {

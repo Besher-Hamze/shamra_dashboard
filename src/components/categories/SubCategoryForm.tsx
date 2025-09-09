@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { X, Save, Tag, Upload, Plus, Minus, Settings } from 'lucide-react';
 import { SubCategory, CreateSubCategoryData, SubCategoryType } from '@/types';
+import { getImageUrl } from '@/utils/hepler';
 
 interface SubCategoryFormProps {
     subCategory?: SubCategory;
@@ -26,6 +27,7 @@ export default function SubCategoryForm({
         categoryId: categoryId,
         type: SubCategoryType.FREE_ATTR,
         customFields: [],
+        image: '',
         isActive: true,
     });
 
@@ -39,6 +41,7 @@ export default function SubCategoryForm({
                 categoryId: subCategory.categoryId || categoryId,
                 type: subCategory.type || SubCategoryType.FREE_ATTR,
                 customFields: subCategory.customFields || [],
+                image: subCategory.image || '',
                 isActive: subCategory.isActive ?? true,
             });
             // Set image preview if subcategory has existing image
@@ -77,7 +80,10 @@ export default function SubCategoryForm({
     const removeImage = () => {
         setImageFile(null);
         setImagePreview('');
-
+        setFormData(prev => ({
+            ...prev,
+            image: ''
+        }));
         // Reset file input
         const fileInput = document.getElementById('subCategoryImageFile') as HTMLInputElement;
         if (fileInput) {
@@ -233,10 +239,10 @@ export default function SubCategoryForm({
                                 </div>
 
                                 {/* Image Preview */}
-                                {imagePreview && (
+                                {(imagePreview || formData.image) && (
                                     <div className="relative inline-block">
                                         <img
-                                            src={imagePreview}
+                                            src={getImageUrl(imagePreview) || getImageUrl(formData.image)}
                                             alt="SubCategory preview"
                                             className="w-32 h-32 object-cover rounded-lg border"
                                             onError={(e) => {
@@ -277,7 +283,7 @@ export default function SubCategoryForm({
                     {error && (
                         <div className="mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
                             <p className="text-red-700 text-sm">
-                                {error?.response?.data?.message || error?.message || 'حدث خطأ أثناء حفظ الفئة الفرعية'}
+                                {error?.message || 'حدث خطأ أثناء حفظ الفئة الفرعية'}
                             </p>
                         </div>
                     )}

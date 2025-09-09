@@ -1,8 +1,8 @@
 function getImageUrl(imageUrl?: string) {
     console.log(imageUrl);
+    if (imageUrl?.startsWith('data:')) return imageUrl;
     return `${process.env.NEXT_PUBLIC_API_URL_STORAGE}${imageUrl}`;
-    // if (!imageUrl) return '/logo.jpg';
-    // return `http://localhost:3000${imageUrl}`;
+
 }
 
 const formatPrice = (price: number, currency: string = 'SYP') => {

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Upload, X } from 'lucide-react';
 import { useCreateCategory, useUpdateCategory, useCreateCategoryWithImage, useUpdateCategoryWithImage, useCategories } from '@/hooks/useCategories';
 import { Category } from '@/types';
+import { getImageUrl } from '@/utils/hepler';
 
 interface CategoryFormProps {
     category?: Category;
@@ -199,7 +200,7 @@ export default function CategoryForm({ category, onSuccess, onCancel }: Category
                         {(imagePreview || formData.image) && (
                             <div className="relative inline-block">
                                 <img
-                                    src={imagePreview || formData.image}
+                                    src={getImageUrl(imagePreview) || getImageUrl(formData.image)}
                                     alt="Category preview"
                                     className="w-32 h-32 object-cover rounded-lg border"
                                     onError={(e) => {

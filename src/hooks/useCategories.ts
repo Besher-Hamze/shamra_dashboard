@@ -78,7 +78,7 @@ export const useUpdateCategory = () => {
 
     return useMutation({
         mutationFn: async ({ id, data }: { id: string; data: Partial<Category> }) => {
-            const response = await apiService.updateCategory(id, data);
+            const response = await apiService.updateCategoryWithImage(id, data);
             return response.data;
         },
         onSuccess: (_, { id }) => {
