@@ -225,6 +225,12 @@ export default function ProductDetailsPage() {
 
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                             <div>
+                                                <label className="text-sm font-medium text-gray-500">رقم المنتج</label>
+                                                <p className="mt-1 text-gray-900 font-medium">
+                                                    {branchPricing.sku}
+                                                </p>
+                                            </div>
+                                            <div>
                                                 <label className="text-sm font-medium text-gray-500">السعر</label>
                                                 <p className="mt-1 text-gray-900 font-bold text-lg">
                                                     {formatPrice(branchPricing.price, branchPricing.currency)}
@@ -242,6 +248,7 @@ export default function ProductDetailsPage() {
                                                     {formatPrice(branchPricing.wholeSalePrice, branchPricing.currency)}
                                                 </p>
                                             </div>
+
                                             {branchPricing.salePrice && (
                                                 <div>
                                                     <label className="text-sm font-medium text-gray-500">سعر التخفيض</label>

@@ -146,6 +146,7 @@ export interface BranchPricing {
     price: number;
     costPrice: number;
     wholeSalePrice: number;
+    sku: string;
     salePrice?: number;
     currency: string;
     stockQuantity: number;

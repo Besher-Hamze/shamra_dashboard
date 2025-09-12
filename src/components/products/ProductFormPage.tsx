@@ -258,6 +258,7 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
                         branchId,
                         price: 0,
                         costPrice: 0,
+                        sku: '',
                         wholeSalePrice: 0,
                         salePrice: undefined,
                         currency: 'SYP',
@@ -367,13 +368,7 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
 
     return (
         <form onSubmit={handleSubmit} className="space-y-8">
-            {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <p className="text-red-700 text-sm">
-                        {(error as any)?.response?.data?.message || error?.message || 'حدث خطأ أثناء حفظ المنتج'}
-                    </p>
-                </div>
-            )}
+
 
             {/* Basic Information */}
             <div className="space-y-6">
@@ -590,6 +585,16 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
                                         </h4>
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                            <div className="form-group">
+                                                <label className="form-label">رقم المنتج</label>
+                                                <input
+                                                    type="text"
+                                                    value={branchPricing.sku}
+                                                    onChange={(e) => handleBranchPricingChange(branchId, 'sku', e.target.value)}
+                                                    className="input-field"
+                                                    placeholder="رقم المنتج"
+                                                />
+                                            </div>
                                             <div className="form-group">
                                                 <label className="form-label">السعر</label>
                                                 <input
@@ -1053,6 +1058,7 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
                                 إضافة
                             </button>
                         </div>
+
                         <div className="flex flex-wrap gap-2 mt-2">
                             {formData.keywords?.map((keyword, index) => (
                                 <span key={index} className="badge-info flex items-center">
@@ -1073,6 +1079,13 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
 
 
             {/* Form Actions */}
+            {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <p className="text-red-700 text-sm">
+                        {(error as any)?.response?.data?.message || error?.message || 'حدث خطأ أثناء حفظ المنتج'}
+                    </p>
+                </div>
+            )}
             <div className="flex justify-end space-x-4 space-x-reverse pt-6 border-t border-gray-200">
                 <button
                     type="button"
