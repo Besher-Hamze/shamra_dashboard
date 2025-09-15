@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { X, Save, Tag, Upload, Plus, Minus, Settings } from 'lucide-react';
-import { SubCategory, CreateSubCategoryData, SubCategoryType } from '@/types';
+import { SubCategory, CreateSubCategoryData, SubCategoryType, UpdateSubCategoryData } from '@/types';
 import { getImageUrl } from '@/utils/hepler';
 
 interface SubCategoryFormProps {
     subCategory?: SubCategory;
     categoryId: string;
-    onSubmit: (data: CreateSubCategoryData, imageFile?: File) => void;
+    onSubmit: (data: CreateSubCategoryData | UpdateSubCategoryData, imageFile?: File) => void;
     onCancel: () => void;
     isLoading?: boolean;
     error?: Error | null;

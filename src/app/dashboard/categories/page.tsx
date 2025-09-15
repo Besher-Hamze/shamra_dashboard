@@ -22,7 +22,7 @@ import Modal from '@/components/ui/Modal';
 import CategoryForm from '@/components/categories/CategoryForm';
 import SubCategoryForm from '@/components/categories/SubCategoryForm';
 import { Category, SubCategory, SubCategoryType } from '@/types';
-import { getImageUrl } from '@/utils/hepler';
+import { getImageUrl, formatDate } from '@/utils/hepler';
 
 export default function CategoriesPage() {
     const [currentPage, setCurrentPage] = useState(1);
@@ -232,7 +232,7 @@ export default function CategoriesPage() {
                 </TableCell>
                 <TableCell>
                     <span className="text-sm text-gray-500">
-                        {new Date(category.createdAt).toLocaleDateString('en-US')}
+                        {formatDate(new Date(category.createdAt))}
                     </span>
                 </TableCell>
                 <TableCell>
@@ -326,7 +326,7 @@ export default function CategoriesPage() {
                         </TableCell>
                         <TableCell>
                             <span className="text-sm text-gray-500">
-                                {new Date(subCategory.createdAt).toLocaleDateString('en-US')}
+                                {formatDate(new Date(subCategory.createdAt))}
                             </span>
                         </TableCell>
                         <TableCell>

@@ -5,6 +5,7 @@ import { ArrowRight, Edit, Trash2, MapPin, Phone, Mail, Clock, Building2, Star, 
 import { useBranch, useDeleteBranch } from '@/hooks/useBranches';
 import { useState } from 'react';
 import Modal from '@/components/ui/Modal';
+import { formatDate } from '@/utils/hepler';
 
 export default function BranchDetailsPage() {
     const router = useRouter();
@@ -171,7 +172,7 @@ export default function BranchDetailsPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {Object.entries(branch.operatingHours)
                                     .filter(([day]) => !['_id', 'id'].includes(day))
-                                    .filter(([_, hours]) => (hours as Record<string, { open: string; close: string }>)?.open && (hours as Record<string, { open: string; close: string }>)?.close)
+                                    .filter(([_, hours]) => typeof hours === 'object' && hours !== null && 'open' in hours && 'close' in hours)
                                     .map(([day, hours]) => (
                                         <div key={day} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
                                             <span className="text-gray-600 capitalize">
@@ -190,9 +191,9 @@ export default function BranchDetailsPage() {
                                                 })()}:
                                             </span>
                                             <span className="font-medium">
-                                                {(hours as Record<string, { open: string; close: string }>).open === 'closed' || (hours as Record<string, { open: string; close: string }>).close === 'closed'
+                                                {hours.open === 'closed' || hours.close === 'closed'
                                                     ? 'مغلق'
-                                                    : `${(hours as Record<string, { open: string; close: string }>).open} - ${(hours as Record<string, { open: string; close: string }>).close}`}
+                                                    : `${hours.open} - ${hours.close}`}
                                             </span>
                                         </div>
                                     ))}
@@ -244,11 +245,11 @@ export default function BranchDetailsPage() {
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-gray-600">تاريخ الإنشاء</span>
-                                <span className="font-medium">{new Date(branch.createdAt).toLocaleDateString('en-US')}</span>
+                                <span className="font-medium">{formatDate(new Date(branch.createdAt))}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-gray-600">آخر تحديث</span>
-                                <span className="font-medium">{new Date(branch.updatedAt).toLocaleDateString('en-US')}</span>
+                                <span className="font-medium">{formatDate(new Date(branch.updatedAt))}</span>
                             </div>
                         </div>
                     </div>

@@ -5,7 +5,7 @@ import { ArrowRight, Edit, Trash2, Package, Tag, DollarSign, Star, Loader2, File
 import { useProduct, useDeleteProduct } from '@/hooks/useProducts';
 import { useState } from 'react';
 import Modal from '@/components/ui/Modal';
-import { formatPrice, getImageUrl } from '@/utils/hepler';
+import { formatPrice, getImageUrl, formatDate } from '@/utils/hepler';
 
 export default function ProductDetailsPage() {
     const router = useRouter();
@@ -397,11 +397,11 @@ export default function ProductDetailsPage() {
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-gray-600">تاريخ الإنشاء</span>
-                                <span className="font-medium">{new Date(product.createdAt).toLocaleDateString('en-US')}</span>
+                                <span className="font-medium">{formatDate(new Date(product.createdAt))}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-gray-600">آخر تحديث</span>
-                                <span className="font-medium">{new Date(product.updatedAt).toLocaleDateString('en-US')}</span>
+                                <span className="font-medium">{formatDate(new Date(product.updatedAt))}</span>
                             </div>
                         </div>
                     </div>

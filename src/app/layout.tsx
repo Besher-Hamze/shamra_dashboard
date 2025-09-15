@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Cairo } from "next/font/google";
 import "./globals.css";
 import QueryProvider from "@/components/QueryProvider";
+import { NotificationProvider } from "@/components/ui/NotificationProvider";
 
 const cairo = Cairo({
   subsets: ["arabic", "latin"],
@@ -24,7 +25,9 @@ export default function RootLayout({
     <html lang="ar" dir="rtl" className={cairo.variable}>
       <body className="font-sans antialiased bg-gray-50 text-gray-900">
         <QueryProvider>
-          {children}
+          <NotificationProvider>
+            {children}
+          </NotificationProvider>
         </QueryProvider>
       </body>
     </html>

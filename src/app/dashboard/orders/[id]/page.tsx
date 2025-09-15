@@ -24,8 +24,10 @@ import {
     CreditCard,
     Hash
 } from 'lucide-react';
-import { useOrder, useUpdateOrderStatus, useDeleteOrder, OrderStatus } from '@/hooks/useOrders';
+import { useOrder, useUpdateOrderStatus, useDeleteOrder, OrderStats } from '@/hooks/useOrders';
 import Modal from '@/components/ui/Modal';
+import { formatDate } from '@/utils/hepler';
+import { OrderStatus } from '@/types';
 
 interface OrderDetailsPageProps {
     params: {
@@ -68,7 +70,7 @@ export default function OrderDetailsPage({ params }: OrderDetailsPageProps) {
                 return <Clock className="h-5 w-5 text-yellow-500" />;
             case OrderStatus.PROCESSING:
                 return <Package className="h-5 w-5 text-blue-500" />;
-            case OrderStatus.COMPLETED:
+            case OrderStatus.SHIPPED:
                 return <CheckCircle className="h-5 w-5 text-green-500" />;
             case OrderStatus.CANCELLED:
                 return <XCircle className="h-5 w-5 text-red-500" />;
@@ -83,7 +85,7 @@ export default function OrderDetailsPage({ params }: OrderDetailsPageProps) {
                 return 'معلق';
             case OrderStatus.PROCESSING:
                 return 'قيد المعالجة';
-            case OrderStatus.COMPLETED:
+            case OrderStatus.SHIPPED:
                 return 'مكتمل';
             case OrderStatus.CANCELLED:
                 return 'ملغي';
@@ -98,7 +100,7 @@ export default function OrderDetailsPage({ params }: OrderDetailsPageProps) {
                 return 'bg-yellow-100 text-yellow-800 border-yellow-200';
             case OrderStatus.PROCESSING:
                 return 'bg-blue-100 text-blue-800 border-blue-200';
-            case OrderStatus.COMPLETED:
+            case OrderStatus.SHIPPED:
                 return 'bg-green-100 text-green-800 border-green-200';
             case OrderStatus.CANCELLED:
                 return 'bg-red-100 text-red-800 border-red-200';
@@ -128,7 +130,7 @@ export default function OrderDetailsPage({ params }: OrderDetailsPageProps) {
                     <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
                     <h2 className="text-xl font-semibold text-gray-900 mb-2">خطأ في تحميل الطلب</h2>
                     <p className="text-gray-600 mb-4">
-                        {error?.response?.data?.message || 'لم يتم العثور على الطلب المطلوب'}
+                        {error?.message || 'لم يتم العثور على الطلب المطلوب'}
                     </p>
                     <button
                         onClick={() => router.push('/dashboard/orders')}
@@ -212,7 +214,7 @@ export default function OrderDetailsPage({ params }: OrderDetailsPageProps) {
                                 <Calendar className="h-5 w-5 text-gray-400" />
                                 <div>
                                     <p className="text-sm text-gray-500">تاريخ الإنشاء</p>
-                                    <p className="font-medium">{new Date(order.createdAt).toLocaleDateString('ar-SA')}</p>
+                                    <p className="font-medium">{formatDate(new Date(order.createdAt))}</p>
                                 </div>
                             </div>
 
@@ -471,7 +473,7 @@ export default function OrderDetailsPage({ params }: OrderDetailsPageProps) {
                         >
                             <option value={OrderStatus.PENDING}>معلق</option>
                             <option value={OrderStatus.PROCESSING}>قيد المعالجة</option>
-                            <option value={OrderStatus.COMPLETED}>مكتمل</option>
+                            <option value={OrderStatus.SHIPPED}>مكتمل</option>
                             <option value={OrderStatus.CANCELLED}>ملغي</option>
                         </select>
                     </div>

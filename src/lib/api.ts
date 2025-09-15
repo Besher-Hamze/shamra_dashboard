@@ -35,6 +35,11 @@ import type {
     ProductStats,
     InventoryStats,
     BaseQueryParams,
+    CreateUserData,
+    UpdateUserData,
+    ChangePasswordData,
+    UsersQueryParams,
+    UserRole,
 } from '@/types';
 
 class ApiService {
@@ -105,9 +110,7 @@ class ApiService {
         return this.api.post('/auth/logout');
     }
 
-    async getProfile(): Promise<AxiosResponse<ApiResponse<User>>> {
-        return this.api.get('/auth/profile');
-    }
+
 
     async selectBranch(branchId: string): Promise<AxiosResponse<ApiResponse<null>>> {
         return this.api.post('/auth/select-branch', { branchId });
@@ -528,6 +531,47 @@ class ApiService {
 
     async getUnreadCount(): Promise<AxiosResponse<ApiResponse<{ count: number }>>> {
         return this.api.get('/notifications/unread-count');
+    }
+
+    // Users endpoints
+    async getUsers(params?: UsersQueryParams): Promise<AxiosResponse<PaginatedResponse<User>>> {
+        return this.api.get('/users', { params });
+    }
+
+    async getUserById(id: string): Promise<AxiosResponse<ApiResponse<User>>> {
+        return this.api.get(`/users/${id}`);
+    }
+
+    async createUser(userData: CreateUserData): Promise<AxiosResponse<ApiResponse<User>>> {
+        return this.api.post('/users', userData);
+    }
+
+    async updateUser(id: string, userData: UpdateUserData): Promise<AxiosResponse<ApiResponse<User>>> {
+        return this.api.patch(`/users/${id}`, userData);
+    }
+
+    async deleteUser(id: string): Promise<AxiosResponse<ApiResponse<null>>> {
+        return this.api.delete(`/users/${id}`);
+    }
+
+    async toggleUserActive(id: string): Promise<AxiosResponse<ApiResponse<User>>> {
+        return this.api.patch(`/users/${id}/toggle-active`);
+    }
+
+    async changeRole(id: string, role: UserRole): Promise<AxiosResponse<ApiResponse<User>>> {
+        return this.api.patch(`/users/${id}/change-role`, { role });
+    }
+
+    async changePassword(changePasswordData: ChangePasswordData): Promise<AxiosResponse<ApiResponse<null>>> {
+        return this.api.patch('/users/change-password', changePasswordData);
+    }
+
+    async getProfile(): Promise<AxiosResponse<ApiResponse<User>>> {
+        return this.api.get('/users/profile');
+    }
+
+    async updateProfile(userData: UpdateUserData): Promise<AxiosResponse<ApiResponse<User>>> {
+        return this.api.patch('/users/profile', userData);
     }
 }
 

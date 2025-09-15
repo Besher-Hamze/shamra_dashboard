@@ -19,6 +19,7 @@ import { useRouter } from 'next/navigation';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table';
 import Pagination from '@/components/ui/Pagination';
 import Modal from '@/components/ui/Modal';
+import { formatDate } from '@/utils/hepler';
 
 export default function OrdersPage() {
     const router = useRouter();
@@ -308,7 +309,7 @@ export default function OrdersPage() {
                                         </TableCell>
                                         <TableCell>
                                             <span className="text-sm text-gray-500">
-                                                {new Date(order.createdAt).toLocaleDateString('en-US')}
+                                                {formatDate(new Date(order.createdAt))}
                                             </span>
                                         </TableCell>
                                         <TableCell>
@@ -377,7 +378,7 @@ export default function OrdersPage() {
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-gray-500">تاريخ الإنشاء:</span>
-                                        <span>{new Date(selectedOrder.createdAt).toLocaleString('ar-SA')}</span>
+                                        <span>{formatDate(new Date(selectedOrder.createdAt))}</span>
                                     </div>
                                 </div>
                             </div>

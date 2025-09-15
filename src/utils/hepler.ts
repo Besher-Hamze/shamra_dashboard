@@ -14,4 +14,13 @@ const formatPrice = (price: number, currency: string = 'SYP') => {
     };
     return `${price.toLocaleString()} ${currencyMap[currency] || currency}`;
 };
-export { getImageUrl, formatPrice };
+
+const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+    });
+}
+
+export { getImageUrl, formatPrice, formatDate };

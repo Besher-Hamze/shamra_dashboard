@@ -25,12 +25,19 @@ export interface Pagination {
 
 
 // User and Auth types
+export enum UserRole {
+    ADMIN = 'admin',
+    MANAGER = 'manager',
+    EMPLOYEE = 'employee',
+    CUSTOMER = 'customer',
+    MERCHANT = 'merchant',
+}
 export interface User {
     id: string;
     firstName: string;
     lastName: string;
     email: string;
-    role: 'ADMIN' | 'MANAGER' | 'EMPLOYEE' | 'CUSTOMER';
+    role: UserRole;
     phoneNumber?: string;
     profileImage?: string;
     branchId?: string;
@@ -43,6 +50,41 @@ export interface AuthResponse {
     access_token: string;
     refresh_token: string;
     user: User;
+}
+
+// User management types
+export interface CreateUserData {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    role?: UserRole;
+    phoneNumber?: string;
+    profileImage?: string;
+    branchId?: string;
+    isActive?: boolean;
+}
+
+export interface UpdateUserData {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phoneNumber?: string;
+    profileImage?: string;
+    branchId?: string;
+    isActive?: boolean;
+}
+
+export interface ChangePasswordData {
+    currentPassword: string;
+    newPassword: string;
+}
+
+export interface UsersQueryParams extends BaseQueryParams {
+    role?: UserRole;
+    branchId?: string;
+    isActive?: boolean;
+    search?: string;
 }
 
 // Address type
