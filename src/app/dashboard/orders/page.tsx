@@ -11,9 +11,10 @@ import {
     Clock,
     CheckCircle,
     XCircle,
-    Truck
+    Truck,
+    CreditCard
 } from 'lucide-react';
-import { useOrders, useUpdateOrderStatus, Order } from '@/hooks/useOrders';
+import { useOrders, useUpdateOrderStatus, useUpdateOrder, Order } from '@/hooks/useOrders';
 import { OrderStatus } from '@/types';
 import { useRouter } from 'next/navigation';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table';
@@ -39,52 +40,78 @@ export default function OrdersPage() {
 
     const { data: ordersData, isLoading } = useOrders(queryParams);
     const updateStatusMutation = useUpdateOrderStatus();
+    const updateOrderMutation = useUpdateOrder();
 
 
     const handleStatusChange = (orderId: string, newStatus: string) => {
         updateStatusMutation.mutate({ id: orderId, status: { status: newStatus as OrderStatus } });
     };
 
-    const getStatusIcon = (status: string) => {
+    const handlePaymentToggle = (order: Order) => {
+        updateOrderMutation.mutate({
+            id: order._id,
+            data: { isPaid: !order.isPaid }
+        });
+    };
+
+    const getStatusIcon = (status: OrderStatus) => {
         switch (status) {
-            case 'PENDING':
+            case OrderStatus.PENDING:
                 return <Clock className="h-4 w-4 text-yellow-500" />;
-            case 'PROCESSING':
+            case OrderStatus.CONFIRMED:
+                return <CheckCircle className="h-4 w-4 text-blue-500" />;
+            case OrderStatus.PROCESSING:
                 return <Package className="h-4 w-4 text-blue-500" />;
-            case 'COMPLETED':
+            case OrderStatus.SHIPPED:
+                return <Truck className="h-4 w-4 text-purple-500" />;
+            case OrderStatus.DELIVERED:
                 return <CheckCircle className="h-4 w-4 text-green-500" />;
-            case 'CANCELLED':
+            case OrderStatus.CANCELLED:
                 return <XCircle className="h-4 w-4 text-red-500" />;
+            case OrderStatus.RETURNED:
+                return <XCircle className="h-4 w-4 text-orange-500" />;
             default:
                 return <Clock className="h-4 w-4 text-gray-500" />;
         }
     };
 
-    const getStatusText = (status: string) => {
+    const getStatusText = (status: OrderStatus) => {
         switch (status) {
-            case 'PENDING':
+            case OrderStatus.PENDING:
                 return 'معلق';
-            case 'PROCESSING':
+            case OrderStatus.CONFIRMED:
+                return 'مؤكد';
+            case OrderStatus.PROCESSING:
                 return 'قيد المعالجة';
-            case 'COMPLETED':
-                return 'مكتمل';
-            case 'CANCELLED':
+            case OrderStatus.SHIPPED:
+                return 'تم الشحن';
+            case OrderStatus.DELIVERED:
+                return 'تم التسليم';
+            case OrderStatus.CANCELLED:
                 return 'ملغي';
+            case OrderStatus.RETURNED:
+                return 'مرتجع';
             default:
-                return status;
+                return 'غير محدد';
         }
     };
 
-    const getStatusColor = (status: string) => {
+    const getStatusColor = (status: OrderStatus) => {
         switch (status) {
-            case 'PENDING':
+            case OrderStatus.PENDING:
                 return 'bg-yellow-100 text-yellow-800';
-            case 'PROCESSING':
+            case OrderStatus.CONFIRMED:
                 return 'bg-blue-100 text-blue-800';
-            case 'COMPLETED':
+            case OrderStatus.PROCESSING:
+                return 'bg-blue-100 text-blue-800';
+            case OrderStatus.SHIPPED:
+                return 'bg-purple-100 text-purple-800';
+            case OrderStatus.DELIVERED:
                 return 'bg-green-100 text-green-800';
-            case 'CANCELLED':
+            case OrderStatus.CANCELLED:
                 return 'bg-red-100 text-red-800';
+            case OrderStatus.RETURNED:
+                return 'bg-orange-100 text-orange-800';
             default:
                 return 'bg-gray-100 text-gray-800';
         }
@@ -218,9 +245,12 @@ export default function OrdersPage() {
                                 >
                                     <option value="">جميع الحالات</option>
                                     <option value={OrderStatus.PENDING}>معلق</option>
+                                    <option value={OrderStatus.CONFIRMED}>مؤكد</option>
                                     <option value={OrderStatus.PROCESSING}>قيد المعالجة</option>
-                                    <option value={OrderStatus.SHIPPED}>مكتمل</option>
+                                    <option value={OrderStatus.SHIPPED}>تم الشحن</option>
+                                    <option value={OrderStatus.DELIVERED}>تم التسليم</option>
                                     <option value={OrderStatus.CANCELLED}>ملغي</option>
+                                    <option value={OrderStatus.RETURNED}>مرتجع</option>
                                 </select>
                             </div>
                         </div>
@@ -258,7 +288,7 @@ export default function OrdersPage() {
                             </TableHeader>
                             <TableBody>
                                 {ordersData?.data?.map((order) => (
-                                    <TableRow key={order.id}>
+                                    <TableRow key={order._id}>
                                         <TableCell>
                                             <span className="font-medium text-blue-600">
                                                 {order.orderNumber}
@@ -267,17 +297,29 @@ export default function OrdersPage() {
                                         <TableCell>
                                             <div>
                                                 <div className="font-medium text-gray-900">
-                                                    {order.customer?.firstName} {order.customer?.lastName}
+                                                    {order.user
+                                                        ? `${order.user.firstName} ${order.user.lastName}`
+                                                        : (typeof order.userId === 'object'
+                                                            ? `${order.userId.firstName} ${order.userId.lastName}`
+                                                            : 'غير محدد'
+                                                        )
+                                                    }
                                                 </div>
                                                 <div className="text-sm text-gray-500">
-                                                    {order.customer?.email}
+                                                    {order.user
+                                                        ? order.user.email
+                                                        : (typeof order.userId === 'object'
+                                                            ? order.userId.email
+                                                            : 'غير محدد'
+                                                        )
+                                                    }
                                                 </div>
                                             </div>
                                         </TableCell>
                                         <TableCell>
                                             <div className="text-sm">
                                                 <div className="font-medium text-gray-900">
-                                                    ${order.total?.toLocaleString()}
+                                                    ${order.totalAmount?.toLocaleString()}
                                                 </div>
                                                 <div className="text-gray-500">
                                                     {order.items?.length || 0} عنصر
@@ -289,13 +331,16 @@ export default function OrdersPage() {
                                                 {getStatusIcon(order.status)}
                                                 <select
                                                     value={order.status}
-                                                    onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                                                    onChange={(e) => handleStatusChange(order._id, e.target.value)}
                                                     className={`text-xs px-2 py-1 rounded-full border-0 focus:ring-2 focus:ring-blue-500 ${getStatusColor(order.status)}`}
                                                 >
                                                     <option value={OrderStatus.PENDING}>معلق</option>
+                                                    <option value={OrderStatus.CONFIRMED}>مؤكد</option>
                                                     <option value={OrderStatus.PROCESSING}>قيد المعالجة</option>
-                                                    <option value={OrderStatus.SHIPPED}>مكتمل</option>
+                                                    <option value={OrderStatus.SHIPPED}>تم الشحن</option>
+                                                    <option value={OrderStatus.DELIVERED}>تم التسليم</option>
                                                     <option value={OrderStatus.CANCELLED}>ملغي</option>
+                                                    <option value={OrderStatus.RETURNED}>مرتجع</option>
                                                 </select>
                                             </div>
                                         </TableCell>
@@ -315,17 +360,28 @@ export default function OrdersPage() {
                                         <TableCell>
                                             <div className="flex items-center space-x-2 space-x-reverse">
                                                 <button
-                                                    onClick={() => router.push(`/dashboard/orders/${order.id}`)}
+                                                    onClick={() => router.push(`/dashboard/orders/${order._id}`)}
                                                     className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded"
                                                     title="عرض"
                                                 >
                                                     <Eye className="h-4 w-4" />
                                                 </button>
                                                 <button
-                                                    onClick={() => router.push(`/dashboard/orders/${order.id}/edit`)}
+                                                    onClick={() => handlePaymentToggle(order)}
+                                                    className={`p-1 rounded ${order.isPaid
+                                                            ? 'text-red-600 hover:text-red-800 hover:bg-red-50'
+                                                            : 'text-green-600 hover:text-green-800 hover:bg-green-50'
+                                                        }`}
+                                                    title={order.isPaid ? "إلغاء الدفع" : "تأكيد الدفع"}
+                                                    disabled={updateOrderMutation.isPending}
+                                                >
+                                                    <CreditCard className="h-4 w-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => router.push(`/dashboard/orders/${order._id}/edit`)}
                                                     className="p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded"
                                                     title="تعديل"
-                                                    disabled={order.status === OrderStatus.SHIPPED || order.status === OrderStatus.CANCELLED}
+                                                    disabled={order.status === OrderStatus.SHIPPED || order.status === OrderStatus.CANCELLED || order.status === OrderStatus.DELIVERED}
                                                 >
                                                     <Edit className="h-4 w-4" />
                                                 </button>

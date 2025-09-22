@@ -40,6 +40,12 @@ import type {
     ChangePasswordData,
     UsersQueryParams,
     UserRole,
+    Banner,
+    CreateBannerData,
+    UpdateBannerData,
+    UpdateSortOrderData,
+    BannersQueryParams,
+    BannerStats,
 } from '@/types';
 
 class ApiService {
@@ -572,6 +578,83 @@ class ApiService {
 
     async updateProfile(userData: UpdateUserData): Promise<AxiosResponse<ApiResponse<User>>> {
         return this.api.patch('/users/profile', userData);
+    }
+
+    // Banners endpoints
+    async getBanners(params?: BannersQueryParams): Promise<AxiosResponse<ApiResponse<PaginatedResponse<Banner>>>> {
+        return this.api.get('/banners', { params });
+    }
+
+    async getBanner(id: string): Promise<AxiosResponse<ApiResponse<Banner>>> {
+        return this.api.get(`/banners/${id}`);
+    }
+
+    async getActiveBanners(limit?: number): Promise<AxiosResponse<ApiResponse<Banner[]>>> {
+        return this.api.get('/banners/active', { params: { limit } });
+    }
+
+    async getBannerStats(): Promise<AxiosResponse<ApiResponse<BannerStats>>> {
+        return this.api.get('/banners/stats');
+    }
+
+    async createBanner(data: CreateBannerData): Promise<AxiosResponse<ApiResponse<Banner>>> {
+        const formData = new FormData();
+
+        // Add image file if it's a File object
+        if (data.image instanceof File) {
+            formData.append('image', data.image);
+        } else if (data.image) {
+            formData.append('image', data.image);
+        }
+
+        // Add other fields
+        if (data.productId) formData.append('productId', data.productId);
+        if (data.categoryId) formData.append('categoryId', data.categoryId);
+        if (data.subCategoryId) formData.append('subCategoryId', data.subCategoryId);
+        if (data.sortOrder !== undefined) formData.append('sortOrder', data.sortOrder.toString());
+        if (data.isActive !== undefined) formData.append('isActive', data.isActive.toString());
+
+        return this.api.post('/banners', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+    }
+
+    async updateBanner(id: string, data: UpdateBannerData): Promise<AxiosResponse<ApiResponse<Banner>>> {
+        const formData = new FormData();
+
+        // Add image file if it's a File object
+        if (data.image instanceof File) {
+            formData.append('image', data.image);
+        } else if (data.image) {
+            formData.append('image', data.image);
+        }
+
+        // Add other fields
+        if (data.productId) formData.append('productId', data.productId);
+        if (data.categoryId) formData.append('categoryId', data.categoryId);
+        if (data.subCategoryId) formData.append('subCategoryId', data.subCategoryId);
+        if (data.sortOrder !== undefined) formData.append('sortOrder', data.sortOrder.toString());
+        if (data.isActive !== undefined) formData.append('isActive', data.isActive.toString());
+
+        return this.api.patch(`/banners/${id}`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+    }
+
+    async toggleBannerActive(id: string): Promise<AxiosResponse<ApiResponse<Banner>>> {
+        return this.api.patch(`/banners/${id}/toggle-active`);
+    }
+
+    async updateBannerSortOrder(id: string, data: UpdateSortOrderData): Promise<AxiosResponse<ApiResponse<Banner>>> {
+        return this.api.patch(`/banners/${id}/sort-order`, data);
+    }
+
+    async deleteBanner(id: string): Promise<AxiosResponse<ApiResponse<null>>> {
+        return this.api.delete(`/banners/${id}`);
     }
 }
 

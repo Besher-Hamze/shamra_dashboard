@@ -22,9 +22,11 @@ import {
     Phone,
     Building2,
     CreditCard,
-    Hash
+    Hash,
+    Truck,
+    CreditCard as PaymentIcon
 } from 'lucide-react';
-import { useOrder, useUpdateOrderStatus, useDeleteOrder, OrderStats } from '@/hooks/useOrders';
+import { useOrder, useUpdateOrderStatus, useDeleteOrder, useUpdateOrder, OrderStats } from '@/hooks/useOrders';
 import Modal from '@/components/ui/Modal';
 import { formatDate } from '@/utils/hepler';
 import { OrderStatus } from '@/types';
@@ -40,9 +42,11 @@ export default function OrderDetailsPage({ params }: OrderDetailsPageProps) {
     const { data: order, isLoading, error } = useOrder(params.id);
     const updateStatusMutation = useUpdateOrderStatus();
     const deleteOrderMutation = useDeleteOrder();
+    const updateOrderMutation = useUpdateOrder();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+    const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [selectedStatus, setSelectedStatus] = useState<OrderStatus>(OrderStatus.PENDING);
 
     const handleStatusUpdate = () => {
@@ -64,53 +68,82 @@ export default function OrderDetailsPage({ params }: OrderDetailsPageProps) {
         });
     };
 
-    const getStatusIcon = (status: string) => {
+    const handlePaymentUpdate = () => {
+        updateOrderMutation.mutate(
+            { id: params.id, data: { isPaid: !order?.isPaid } },
+            {
+                onSuccess: () => {
+                    setIsPaymentModalOpen(false);
+                },
+            }
+        );
+    };
+
+    const getStatusIcon = (status: OrderStatus) => {
         switch (status) {
             case OrderStatus.PENDING:
                 return <Clock className="h-5 w-5 text-yellow-500" />;
+            case OrderStatus.CONFIRMED:
+                return <CheckCircle className="h-5 w-5 text-blue-500" />;
             case OrderStatus.PROCESSING:
                 return <Package className="h-5 w-5 text-blue-500" />;
             case OrderStatus.SHIPPED:
+                return <Truck className="h-5 w-5 text-purple-500" />;
+            case OrderStatus.DELIVERED:
                 return <CheckCircle className="h-5 w-5 text-green-500" />;
             case OrderStatus.CANCELLED:
                 return <XCircle className="h-5 w-5 text-red-500" />;
+            case OrderStatus.RETURNED:
+                return <XCircle className="h-5 w-5 text-orange-500" />;
             default:
                 return <Clock className="h-5 w-5 text-gray-500" />;
         }
     };
 
-    const getStatusText = (status: string) => {
+    const getStatusText = (status: OrderStatus) => {
         switch (status) {
             case OrderStatus.PENDING:
                 return 'معلق';
+            case OrderStatus.CONFIRMED:
+                return 'مؤكد';
             case OrderStatus.PROCESSING:
                 return 'قيد المعالجة';
             case OrderStatus.SHIPPED:
-                return 'مكتمل';
+                return 'تم الشحن';
+            case OrderStatus.DELIVERED:
+                return 'تم التسليم';
             case OrderStatus.CANCELLED:
                 return 'ملغي';
+            case OrderStatus.RETURNED:
+                return 'مرتجع';
             default:
-                return status;
+                return 'غير محدد';
         }
     };
 
-    const getStatusColor = (status: string) => {
+    const getStatusColor = (status: OrderStatus) => {
         switch (status) {
             case OrderStatus.PENDING:
                 return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+            case OrderStatus.CONFIRMED:
+                return 'bg-blue-100 text-blue-800 border-blue-200';
             case OrderStatus.PROCESSING:
                 return 'bg-blue-100 text-blue-800 border-blue-200';
             case OrderStatus.SHIPPED:
+                return 'bg-purple-100 text-purple-800 border-purple-200';
+            case OrderStatus.DELIVERED:
                 return 'bg-green-100 text-green-800 border-green-200';
             case OrderStatus.CANCELLED:
                 return 'bg-red-100 text-red-800 border-red-200';
+            case OrderStatus.RETURNED:
+                return 'bg-orange-100 text-orange-800 border-orange-200';
             default:
                 return 'bg-gray-100 text-gray-800 border-gray-200';
         }
     };
 
-    const canEdit = order?.status === OrderStatus.PENDING || order?.status === OrderStatus.PROCESSING;
-    const canDelete = order?.status === OrderStatus.PENDING || order?.status === OrderStatus.CANCELLED;
+    const canEdit = order?.status === OrderStatus.PENDING || order?.status === OrderStatus.CONFIRMED || order?.status === OrderStatus.PROCESSING;
+    const canDelete = order?.status === OrderStatus.PENDING;
 
     if (isLoading) {
         return (
@@ -248,14 +281,20 @@ export default function OrderDetailsPage({ params }: OrderDetailsPageProps) {
                             <h3 className="text-lg font-semibold text-gray-900">معلومات العميل</h3>
                         </div>
 
-                        {order.customer ? (
+                        {order.user || typeof order.userId === 'object' ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <div className="space-y-3">
                                         <div>
                                             <p className="text-sm text-gray-500">الاسم</p>
                                             <p className="font-medium text-gray-900">
-                                                {order.customer.firstName} {order.customer.lastName}
+                                                {order.user
+                                                    ? `${order.user.firstName} ${order.user.lastName}`
+                                                    : (typeof order.userId === 'object'
+                                                        ? `${order.userId.firstName} ${order.userId.lastName}`
+                                                        : 'غير محدد'
+                                                    )
+                                                }
                                             </p>
                                         </div>
 
@@ -263,42 +302,49 @@ export default function OrderDetailsPage({ params }: OrderDetailsPageProps) {
                                             <Mail className="h-4 w-4 text-gray-400" />
                                             <div>
                                                 <p className="text-sm text-gray-500">البريد الإلكتروني</p>
-                                                <p className="font-medium text-gray-900">{order.customer.email}</p>
+                                                <p className="font-medium text-gray-900">
+                                                    {order.user
+                                                        ? order.user.email
+                                                        : (typeof order.userId === 'object'
+                                                            ? order.userId.email
+                                                            : 'غير محدد'
+                                                        )
+                                                    }
+                                                </p>
                                             </div>
                                         </div>
 
-                                        {order.customer.phoneNumber && (
+                                        {(order.user?.phoneNumber || (typeof order.userId === 'object' && order.userId.phoneNumber)) && (
                                             <div className="flex items-center space-x-2 space-x-reverse">
                                                 <Phone className="h-4 w-4 text-gray-400" />
                                                 <div>
                                                     <p className="text-sm text-gray-500">رقم الهاتف</p>
-                                                    <p className="font-medium text-gray-900">{order.customer.phoneNumber}</p>
+                                                    <p className="font-medium text-gray-900">
+                                                        {order.user?.phoneNumber || (typeof order.userId === 'object' ? order.userId.phoneNumber : '')}
+                                                    </p>
                                                 </div>
                                             </div>
                                         )}
                                     </div>
                                 </div>
 
-                                {order.customer.address && (
-                                    <div>
-                                        <div className="flex items-center space-x-2 space-x-reverse mb-2">
-                                            <MapPin className="h-4 w-4 text-gray-400" />
-                                            <p className="text-sm text-gray-500">العنوان</p>
-                                        </div>
-                                        <div className="text-sm text-gray-900 bg-gray-50 p-3 rounded-lg">
-                                            <p>{order.customer.address.street}</p>
-                                            <p>{order.customer.address.city}</p>
-                                        </div>
+                                <div>
+                                    <div className="flex items-center space-x-2 space-x-reverse mb-2">
+                                        <Building2 className="h-4 w-4 text-gray-400" />
+                                        <p className="text-sm text-gray-500">الدور</p>
                                     </div>
-                                )}
+                                    <div className="text-sm text-gray-900 bg-gray-50 p-3 rounded-lg">
+                                        <p>{order.user?.role || (typeof order.userId === 'object' ? order.userId.role : 'غير محدد')}</p>
+                                    </div>
+                                </div>
                             </div>
                         ) : (
-                            <p className="text-gray-500">لا توجد معلومات عن العميل</p>
+                            <p className="text-gray-500">لا توجد معلومات عن المستخدم</p>
                         )}
                     </div>
 
                     {/* Branch Information */}
-                    {order.branch && (
+                    {(order.branch || (typeof order.branchId === 'object' && order.branchId)) && (
                         <div className="card">
                             <div className="flex items-center space-x-3 space-x-reverse mb-6">
                                 <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
@@ -310,21 +356,33 @@ export default function OrderDetailsPage({ params }: OrderDetailsPageProps) {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <p className="text-sm text-gray-500">اسم الفرع</p>
-                                    <p className="font-medium text-gray-900">{order.branch.name}</p>
+                                    <p className="font-medium text-gray-900">
+                                        {order.branch?.name || (typeof order.branchId === 'object' ? order.branchId.name : 'غير محدد')}
+                                    </p>
                                 </div>
 
-                                {order.branch.phone && (
+                                {(order.branch?.phone || (typeof order.branchId === 'object' && order.branchId.phone)) && (
                                     <div>
                                         <p className="text-sm text-gray-500">رقم الهاتف</p>
-                                        <p className="font-medium text-gray-900">{order.branch.phone}</p>
+                                        <p className="font-medium text-gray-900">
+                                            {order.branch?.phone || (typeof order.branchId === 'object' ? order.branchId.phone : '')}
+                                        </p>
                                     </div>
                                 )}
 
-                                {order.branch.address && (
+                                {(order.branch?.address || (typeof order.branchId === 'object' && order.branchId.address)) && (
                                     <div className="md:col-span-2">
                                         <p className="text-sm text-gray-500 mb-2">العنوان</p>
                                         <div className="text-sm text-gray-900 bg-gray-50 p-3 rounded-lg">
-                                            <p>{order.branch.address.street}, {order.branch.address.city}</p>
+                                            <p>
+                                                {order.branch?.address
+                                                    ? `${order.branch.address.street}, ${order.branch.address.city}`
+                                                    : (typeof order.branchId === 'object' && order.branchId.address
+                                                        ? `${order.branchId.address.street}, ${order.branchId.address.city}`
+                                                        : 'غير محدد'
+                                                    )
+                                                }
+                                            </p>
                                         </div>
                                     </div>
                                 )}
@@ -360,15 +418,15 @@ export default function OrderDetailsPage({ params }: OrderDetailsPageProps) {
                                             <td className="px-6 py-4">
                                                 <div>
                                                     <div className="font-medium text-gray-900">{item.productName}</div>
-                                                    <div className="text-sm text-gray-500">{item.productSku}</div>
+                                                    <div className="text-sm text-gray-500">ID: {item.productId}</div>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-sm text-gray-900">{item.quantity}</td>
                                             <td className="px-6 py-4 text-sm text-gray-900">
-                                                ${item.price.toLocaleString()}
+                                                ${item.price}
                                             </td>
                                             <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                                                ${(item.quantity * item.price).toLocaleString()}
+                                                ${item.total}
                                             </td>
                                         </tr>
                                     ))}
@@ -407,25 +465,25 @@ export default function OrderDetailsPage({ params }: OrderDetailsPageProps) {
                         <div className="space-y-3">
                             <div className="flex justify-between text-sm">
                                 <span className="text-gray-600">المجموع الفرعي:</span>
-                                <span className="font-medium">${order.subtotal.toLocaleString()}</span>
+                                <span className="font-medium">${order.subtotal}</span>
                             </div>
 
                             <div className="flex justify-between text-sm">
                                 <span className="text-gray-600">الضرائب:</span>
-                                <span className="font-medium">${order.taxAmount.toLocaleString()}</span>
+                                <span className="font-medium">${order.taxAmount}</span>
                             </div>
 
                             <div className="flex justify-between text-sm">
                                 <span className="text-gray-600">الخصم:</span>
                                 <span className="font-medium text-red-600">
-                                    -${order.discountAmount.toLocaleString()}
+                                    -${order.discountAmount}
                                 </span>
                             </div>
 
                             <div className="border-t pt-3">
                                 <div className="flex justify-between font-bold text-lg">
                                     <span>المجموع الإجمالي:</span>
-                                    <span className="text-blue-600">${order.total.toLocaleString()}</span>
+                                    <span className="text-blue-600">${order.totalAmount}</span>
                                 </div>
                             </div>
                         </div>
@@ -435,6 +493,24 @@ export default function OrderDetailsPage({ params }: OrderDetailsPageProps) {
                     <div className="card">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4">إجراءات سريعة</h3>
                         <div className="space-y-3">
+                            {/* Payment Status Button */}
+                            <button
+                                onClick={() => setIsPaymentModalOpen(true)}
+                                className={`w-full flex items-center justify-center ${order?.isPaid
+                                    ? 'btn-secondary text-red-600 hover:bg-red-50'
+                                    : 'btn-primary text-white'
+                                    }`}
+                                disabled={updateOrderMutation.isPending}
+                            >
+                                <PaymentIcon className="h-4 w-4 mr-2" />
+                                {updateOrderMutation.isPending
+                                    ? 'جاري التحديث...'
+                                    : order?.isPaid
+                                        ? 'إلغاء الدفع'
+                                        : 'تأكيد الدفع'
+                                }
+                            </button>
+
                             <button className="btn-secondary w-full flex items-center justify-center">
                                 <Download className="h-4 w-4 mr-2" />
                                 تحميل الفاتورة
@@ -530,6 +606,71 @@ export default function OrderDetailsPage({ params }: OrderDetailsPageProps) {
                             disabled={deleteOrderMutation.isPending}
                         >
                             {deleteOrderMutation.isPending ? 'جاري الحذف...' : 'حذف الطلب'}
+                        </button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Payment Confirmation Modal */}
+            <Modal
+                isOpen={isPaymentModalOpen}
+                onClose={() => setIsPaymentModalOpen(false)}
+                title={order?.isPaid ? "إلغاء الدفع" : "تأكيد الدفع"}
+            >
+                <div className="space-y-4">
+                    <div className="flex items-center space-x-3 space-x-reverse">
+                        <PaymentIcon className={`h-8 w-8 ${order?.isPaid ? 'text-red-500' : 'text-green-500'}`} />
+                        <div>
+                            <p className="text-gray-900 font-medium">
+                                {order?.isPaid
+                                    ? "هل أنت متأكد من إلغاء دفع هذا الطلب؟"
+                                    : "هل أنت متأكد من تأكيد دفع هذا الطلب؟"
+                                }
+                            </p>
+                            <p className="text-sm text-gray-500 mt-1">
+                                {order?.isPaid
+                                    ? "سيتم تغيير حالة الدفع إلى غير مدفوع"
+                                    : "سيتم تأكيد دفع الطلب وتسجيل تاريخ الدفع"
+                                }
+                            </p>
+                        </div>
+                    </div>
+
+                    {order && (
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm text-gray-600">رقم الطلب:</span>
+                                <span className="font-medium">{order.orderNumber}</span>
+                            </div>
+                            <div className="flex justify-between items-center mt-2">
+                                <span className="text-sm text-gray-600">المبلغ الإجمالي:</span>
+                                <span className="font-bold text-lg text-blue-600">${order.totalAmount}</span>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="flex justify-end space-x-3 space-x-reverse pt-4 border-t">
+                        <button
+                            onClick={() => setIsPaymentModalOpen(false)}
+                            className="btn-secondary"
+                            disabled={updateOrderMutation.isPending}
+                        >
+                            إلغاء
+                        </button>
+                        <button
+                            onClick={handlePaymentUpdate}
+                            className={`btn-primary ${order?.isPaid
+                                ? 'bg-red-600 hover:bg-red-700'
+                                : 'bg-green-600 hover:bg-green-700'
+                                }`}
+                            disabled={updateOrderMutation.isPending}
+                        >
+                            {updateOrderMutation.isPending
+                                ? 'جاري التحديث...'
+                                : order?.isPaid
+                                    ? 'إلغاء الدفع'
+                                    : 'تأكيد الدفع'
+                            }
                         </button>
                     </div>
                 </div>

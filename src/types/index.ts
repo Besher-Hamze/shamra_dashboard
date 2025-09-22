@@ -297,62 +297,156 @@ export interface CreateCustomerData {
 export interface OrderItem {
     productId: string;
     productName: string;
-    productSku: string;
     quantity: number;
     price: number;
-    total?: number;
+    total: number;
 }
 
 // Order Status
 export enum OrderStatus {
-    PENDING = 'pending',
-    CONFIRMED = 'confirmed',
-    PROCESSING = 'processing',
-    SHIPPED = 'shipped',
-    DELIVERED = 'delivered',
-    CANCELLED = 'cancelled',
-    RETURNED = 'returned',
+    PENDING = 'PENDING',
+    CONFIRMED = 'CONFIRMED',
+    PROCESSING = 'PROCESSING',
+    SHIPPED = 'SHIPPED',
+    DELIVERED = 'DELIVERED',
+    CANCELLED = 'CANCELLED',
+    RETURNED = 'RETURNED',
 }
 
 export interface Order {
-    id: string;
+    _id: string;
     orderNumber: string;
-    customerId: string;
-    customer?: Customer;
-    branchId?: string;
-    branch?: Branch;
+    userId: string | User;
+    branchId?: string | Branch;
     items: OrderItem[];
     subtotal: number;
     taxAmount: number;
     discountAmount: number;
-    total: number;
+    totalAmount: number;
     status: OrderStatus;
-    isPaid: boolean;
     notes?: string;
-    createdAt: string;
-    updatedAt: string;
+    isPaid: boolean;
+    paidAt?: Date;
+    isDeleted: boolean;
+    createdBy: string | User;
+    updatedBy?: string | User;
+    createdAt: Date;
+    updatedAt: Date;
+    totalQuantity?: number; // Virtual field
+    // Virtual fields from Mongoose
+    user?: User;
+    branch?: Branch;
 }
 
 export interface CreateOrderData {
-    customerId: string;
+    items: Omit<OrderItem, 'total'>[];
     branchId?: string;
-    items: OrderItem[];
+    notes?: string;
     taxAmount?: number;
     discountAmount?: number;
-    notes?: string;
-    isPaid?: boolean;
 }
 
 export interface UpdateOrderData {
-    status?: OrderStatus;
+    items?: Omit<OrderItem, 'total'>[];
+    branchId?: string;
+    notes?: string;
     taxAmount?: number;
     discountAmount?: number;
-    notes?: string;
     isPaid?: boolean;
 }
 
 export interface UpdateOrderStatusData {
     status: OrderStatus;
+}
+
+export interface OrdersQueryParams {
+    page?: number;
+    limit?: number;
+    sort?: string;
+    branchId?: string;
+    status?: OrderStatus;
+    isPaid?: boolean;
+    search?: string;
+}
+
+export interface OrderStats {
+    totalOrders: number;
+    pendingOrders: number;
+    completedOrders: number;
+    paidOrders: number;
+    unpaidOrders: number;
+    totalRevenue: number;
+    paidRevenue: number;
+    averageOrderValue: number;
+    ordersByStatus: Array<{
+        _id: OrderStatus;
+        count: number;
+    }>;
+    recentOrders: Order[];
+}
+
+// Banner types
+export interface Banner {
+    _id: string;
+    image: string;
+    productId?: string | Product;
+    categoryId?: string | Category;
+    subCategoryId?: string | SubCategory;
+    sortOrder: number;
+    isActive: boolean;
+    isDeleted: boolean;
+    createdBy: string | User;
+    updatedBy?: string | User;
+    createdAt: Date;
+    updatedAt: Date;
+    // Virtual fields from Mongoose
+    product?: Product;
+    category?: Category;
+    subCategory?: SubCategory;
+}
+
+export interface CreateBannerData {
+    image: string | File;
+    productId?: string;
+    categoryId?: string;
+    subCategoryId?: string;
+    sortOrder?: number;
+    isActive?: boolean;
+}
+
+export interface UpdateBannerData {
+    image?: string | File;
+    productId?: string;
+    categoryId?: string;
+    subCategoryId?: string;
+    sortOrder?: number;
+    isActive?: boolean;
+}
+
+export interface UpdateSortOrderData {
+    sortOrder: number;
+}
+
+export interface BannersQueryParams {
+    page?: number;
+    limit?: number;
+    sort?: string;
+    isActive?: boolean;
+    productId?: string;
+    categoryId?: string;
+    subCategoryId?: string;
+    search?: string;
+}
+
+export interface BannerStats {
+    totalBanners: number;
+    activeBanners: number;
+    inactiveBanners: number;
+    bannersByType: Array<{
+        _id: string;
+        count: number;
+    }>;
+    recentBanners: Banner[];
 }
 
 // Inventory types
