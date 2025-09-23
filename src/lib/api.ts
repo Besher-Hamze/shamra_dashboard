@@ -46,6 +46,12 @@ import type {
     UpdateSortOrderData,
     BannersQueryParams,
     BannerStats,
+    MerchantRequest,
+    CreateMerchantRequestData,
+    UpdateMerchantRequestData,
+    ReviewMerchantRequestData,
+    MerchantRequestsQueryParams,
+    MerchantRequestStats,
 } from '@/types';
 
 class ApiService {
@@ -582,7 +588,9 @@ class ApiService {
 
     // Banners endpoints
     async getBanners(params?: BannersQueryParams): Promise<AxiosResponse<ApiResponse<PaginatedResponse<Banner>>>> {
-        return this.api.get('/banners', { params });
+        // Only include params if they exist and are not empty
+        const queryParams = params && Object.keys(params).length > 0 ? { params } : {};
+        return this.api.get('/banners', queryParams);
     }
 
     async getBanner(id: string): Promise<AxiosResponse<ApiResponse<Banner>>> {
@@ -655,6 +663,41 @@ class ApiService {
 
     async deleteBanner(id: string): Promise<AxiosResponse<ApiResponse<null>>> {
         return this.api.delete(`/banners/${id}`);
+    }
+
+    // Merchant Requests endpoints
+    async getMerchantRequests(params?: MerchantRequestsQueryParams): Promise<AxiosResponse<PaginatedResponse<MerchantRequest>>> {
+        // Only include params if they exist and are not empty
+        const queryParams = params && Object.keys(params).length > 0 ? { params } : {};
+        return this.api.get('/merchants', queryParams);
+    }
+
+    async getMerchantRequest(id: string): Promise<AxiosResponse<ApiResponse<MerchantRequest>>> {
+        return this.api.get(`/merchants/${id}`);
+    }
+
+    async getMyMerchantRequest(): Promise<AxiosResponse<ApiResponse<MerchantRequest>>> {
+        return this.api.get('/merchants/my-request');
+    }
+
+    async getMerchantRequestStats(): Promise<AxiosResponse<ApiResponse<MerchantRequestStats>>> {
+        return this.api.get('/merchants/statistics');
+    }
+
+    async createMerchantRequest(data: CreateMerchantRequestData): Promise<AxiosResponse<ApiResponse<MerchantRequest>>> {
+        return this.api.post('/merchants/request', data);
+    }
+
+    async updateMyMerchantRequest(data: UpdateMerchantRequestData): Promise<AxiosResponse<ApiResponse<MerchantRequest>>> {
+        return this.api.patch('/merchants/my-request', data);
+    }
+
+    async reviewMerchantRequest(id: string, data: ReviewMerchantRequestData): Promise<AxiosResponse<ApiResponse<MerchantRequest>>> {
+        return this.api.patch(`/merchants/${id}/review`, data);
+    }
+
+    async deleteMerchantRequest(id: string): Promise<AxiosResponse<ApiResponse<null>>> {
+        return this.api.delete(`/merchants/${id}`);
     }
 }
 

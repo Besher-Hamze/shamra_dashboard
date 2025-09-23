@@ -548,9 +548,12 @@ export default function OrderDetailsPage({ params }: OrderDetailsPageProps) {
                             className="select-field"
                         >
                             <option value={OrderStatus.PENDING}>معلق</option>
+                            <option value={OrderStatus.CONFIRMED}>مؤكد</option>
                             <option value={OrderStatus.PROCESSING}>قيد المعالجة</option>
-                            <option value={OrderStatus.SHIPPED}>مكتمل</option>
+                            <option value={OrderStatus.SHIPPED}>تم الشحن</option>
+                            <option value={OrderStatus.DELIVERED}>تم التسليم</option>
                             <option value={OrderStatus.CANCELLED}>ملغي</option>
+                            <option value={OrderStatus.RETURNED}>مرتجع</option>
                         </select>
                     </div>
 

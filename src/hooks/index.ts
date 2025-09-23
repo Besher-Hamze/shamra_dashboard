@@ -40,3 +40,13 @@ export {
     useSubCategoryManagement,
     useSubCategoryForm,
 } from './useSubCategories';
+
+export {
+    useMerchantRequests,
+    useMerchantRequest,
+    useMyMerchantRequest,
+    useMerchantRequestStats,
+    useMerchantRequestMutations,
+    useMerchantRequestManagement,
+    useMerchantRequestForm,
+} from './useMerchants';

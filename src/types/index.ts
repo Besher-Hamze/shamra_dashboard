@@ -304,15 +304,14 @@ export interface OrderItem {
 
 // Order Status
 export enum OrderStatus {
-    PENDING = 'PENDING',
-    CONFIRMED = 'CONFIRMED',
-    PROCESSING = 'PROCESSING',
-    SHIPPED = 'SHIPPED',
-    DELIVERED = 'DELIVERED',
-    CANCELLED = 'CANCELLED',
-    RETURNED = 'RETURNED',
+    PENDING = 'pending',
+    CONFIRMED = 'confirmed',
+    PROCESSING = 'processing',
+    SHIPPED = 'shipped',
+    DELIVERED = 'delivered',
+    CANCELLED = 'cancelled',
+    RETURNED = 'returned',
 }
-
 export interface Order {
     _id: string;
     orderNumber: string;
@@ -447,6 +446,63 @@ export interface BannerStats {
         count: number;
     }>;
     recentBanners: Banner[];
+}
+
+// Merchant Request Types
+export enum MerchantRequestStatus {
+    PENDING = 'pending',
+    APPROVED = 'approved',
+    REJECTED = 'rejected',
+}
+
+export interface MerchantRequest {
+    _id: string;
+    userId: string;
+    storeName: string;
+    address: string;
+    phoneNumber: string;
+    status: MerchantRequestStatus;
+    rejectionReason?: string;
+    reviewedBy?: string;
+    reviewedAt?: Date;
+    isDeleted: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+    // Virtual fields from Mongoose
+    user?: User;
+    reviewer?: User;
+}
+
+export interface CreateMerchantRequestData {
+    storeName: string;
+    address: string;
+    phoneNumber: string;
+}
+
+export interface UpdateMerchantRequestData {
+    storeName?: string;
+    address?: string;
+    phoneNumber?: string;
+}
+
+export interface ReviewMerchantRequestData {
+    status: MerchantRequestStatus;
+    rejectionReason?: string;
+}
+
+export interface MerchantRequestsQueryParams {
+    page?: number;
+    limit?: number;
+    status?: MerchantRequestStatus;
+    search?: string;
+}
+
+export interface MerchantRequestStats {
+    totalRequests: number;
+    pendingRequests: number;
+    approvedRequests: number;
+    rejectedRequests: number;
+    recentRequests: MerchantRequest[];
 }
 
 // Inventory types

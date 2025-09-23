@@ -17,7 +17,8 @@ import {
   BarChart3,
   Building2,
   ChevronRight,
-  Image
+  Image,
+  Store
 } from 'lucide-react';
 import { AuthService } from '@/lib/auth';
 
@@ -37,6 +38,7 @@ const navigation: SidebarItem[] = [
   { name: 'المستخدمين', href: '/dashboard/users', icon: Users },
   { name: 'الطلبات', href: '/dashboard/orders', icon: ShoppingCart },
   { name: 'البانرات', href: '/dashboard/banners', icon: Image },
+  { name: 'طلبات التجار', href: '/dashboard/merchants', icon: Store },
   // { name: 'العملاء', href: '/dashboard/customers', icon: Users },
   // { name: 'المخزون', href: '/dashboard/inventory', icon: Package },
   // { name: 'الإشعارات', href: '/dashboard/notifications', icon: Bell, badge: 3 },
