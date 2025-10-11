@@ -21,7 +21,7 @@ import { Banner } from '@/types';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table';
 import Pagination from '@/components/ui/Pagination';
 import Modal from '@/components/ui/Modal';
-import { formatDate } from '@/utils/hepler';
+import { formatDate, getImageUrl } from '@/utils/hepler';
 
 export default function BannersPage() {
     const router = useRouter();
@@ -67,6 +67,7 @@ export default function BannersPage() {
         });
     };
 
+    // Helper functions for banner display
     const getBannerType = (banner: Banner) => {
         if (banner.product || typeof banner.productId === 'object') {
             return 'منتج';
@@ -190,7 +191,7 @@ export default function BannersPage() {
                                 <TableCell>
                                     <div className="w-16 h-12 bg-gray-100 rounded-lg overflow-hidden">
                                         <img
-                                            src={banner.image}
+                                            src={getImageUrl(banner.image)}
                                             alt="Banner"
                                             className="w-full h-full object-cover"
                                         />

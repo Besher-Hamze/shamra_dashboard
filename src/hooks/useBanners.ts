@@ -14,6 +14,29 @@ import type {
     PaginatedResponse,
 } from '@/types';
 
+// Helper functions for banner filtering
+const getBannerType = (banner: Banner) => {
+    if (banner.product || typeof banner.productId === 'object') {
+        return 'منتج';
+    } else if (banner.category || typeof banner.categoryId === 'object') {
+        return 'صنف';
+    } else if (banner.subCategory || typeof banner.subCategoryId === 'object') {
+        return 'صنف فرعي';
+    }
+    return 'عام';
+};
+
+const getBannerTarget = (banner: Banner) => {
+    if (banner.product || typeof banner.productId === 'object') {
+        return typeof banner.productId === 'object' ? banner.productId.name : 'منتج';
+    } else if (banner.category || typeof banner.categoryId === 'object') {
+        return typeof banner.categoryId === 'object' ? banner.categoryId.name : 'صنف';
+    } else if (banner.subCategory || typeof banner.subCategoryId === 'object') {
+        return typeof banner.subCategoryId === 'object' ? banner.subCategoryId.name : 'صنف فرعي';
+    }
+    return 'عام';
+};
+
 // Get all banners with pagination
 export function useBanners(params?: BannersQueryParams) {
     return useQuery({
@@ -62,7 +85,7 @@ export function useBannerStats() {
 // Banner mutations
 export function useBannerMutations() {
     const queryClient = useQueryClient();
-    const { showConfirmDialog } = useDialogHelpers();
+    const { confirmDelete } = useDialogHelpers();
 
     // Create banner
     const createBannerMutation = useMutation({
@@ -130,14 +153,10 @@ export function useBannerMutations() {
 
     // Delete banner with confirmation
     const deleteBanner = (banner: Banner) => {
-        showConfirmDialog({
-            title: 'تأكيد حذف البانر',
-            message: `هل أنت متأكد من حذف هذا البانر؟ لا يمكن التراجع عن هذا الإجراء.`,
-            onConfirm: () => deleteBannerMutation.mutate(banner._id),
-            confirmText: 'حذف',
-            cancelText: 'إلغاء',
-            type: 'danger',
-        });
+        confirmDelete(
+            'هذا البانر',
+            () => deleteBannerMutation.mutate(banner._id)
+        );
     };
 
     return {
@@ -157,21 +176,68 @@ export function useBannerManagement() {
     const [statusFilter, setStatusFilter] = useState<string>('');
     const [typeFilter, setTypeFilter] = useState<string>('');
 
-    const queryParams: BannersQueryParams = {
-        page: currentPage,
-        limit: 10,
-        search: searchTerm || undefined,
-        isActive: statusFilter ? statusFilter === 'active' : undefined,
-        productId: typeFilter === 'product' ? undefined : undefined,
-        categoryId: typeFilter === 'category' ? undefined : undefined,
-        subCategoryId: typeFilter === 'subcategory' ? undefined : undefined,
-    };
-
-    const { data: bannersData, isLoading } = useBanners(queryParams);
+    // Fetch all banners without search/filter parameters for local filtering
+    const { data: allBannersData, isLoading } = useBanners();
     const mutations = useBannerMutations();
 
-    const banners = bannersData?.data?.data || [];
-    const pagination = bannersData?.data?.pagination;
+    const allBanners = allBannersData?.data || [];
+
+    // Local filtering logic
+    const filteredBanners = allBanners.filter((banner) => {
+        // Search filter
+        if (searchTerm) {
+            const searchLower = searchTerm.toLowerCase();
+            const bannerType = getBannerType(banner).toLowerCase();
+            const bannerTarget = getBannerTarget(banner).toLowerCase();
+
+            if (!bannerType.includes(searchLower) && !bannerTarget.includes(searchLower)) {
+                return false;
+            }
+        }
+
+        // Status filter
+        if (statusFilter) {
+            if (statusFilter === 'active' && !banner.isActive) {
+                return false;
+            }
+            if (statusFilter === 'inactive' && banner.isActive) {
+                return false;
+            }
+        }
+
+        // Type filter
+        if (typeFilter) {
+            const bannerType = getBannerType(banner);
+            if (typeFilter === 'product' && bannerType !== 'منتج') {
+                return false;
+            }
+            if (typeFilter === 'category' && bannerType !== 'صنف') {
+                return false;
+            }
+            if (typeFilter === 'subcategory' && bannerType !== 'صنف فرعي') {
+                return false;
+            }
+            if (typeFilter === 'general' && bannerType !== 'عام') {
+                return false;
+            }
+        }
+
+        return true;
+    });
+
+    // Local pagination
+    const itemsPerPage = 10;
+    const totalPages = Math.ceil(filteredBanners.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const banners = filteredBanners.slice(startIndex, endIndex);
+
+    const pagination = {
+        page: currentPage,
+        pages: totalPages,
+        total: filteredBanners.length,
+        limit: itemsPerPage
+    };
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
@@ -217,7 +283,7 @@ export function useBannerManagement() {
         handleStatusFilter,
         handleTypeFilter,
         clearFilters,
-
+        setSearchTerm,
         // Mutations
         ...mutations,
     };

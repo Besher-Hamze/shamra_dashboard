@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiService } from '@/lib/api';
+import { showSuccess, showError } from '@/components/ui/NotificationProvider';
+import type { ImportResult, PaginatedResponse, InventoryItem as ApiInventoryItem, StockAdjustmentData } from '@/types';
 
 export interface InventoryItem {
     id: string;
@@ -58,7 +60,7 @@ export interface InventoryQueryParams {
 }
 
 export const useInventory = (params: InventoryQueryParams = {}) => {
-    return useQuery<PaginatedResponse<InventoryItem>>({
+    return useQuery<PaginatedResponse<ApiInventoryItem>>({
         queryKey: ['inventory', params],
         queryFn: async () => {
             const response = await apiService.getInventory(params);
@@ -132,15 +134,7 @@ export const useAdjustStock = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (data: {
-            productId: string;
-            branchId: string;
-            type: string;
-            quantity: number;
-            unitCost?: number;
-            reference?: string;
-            notes?: string;
-        }) => {
+        mutationFn: async (data: StockAdjustmentData) => {
             const response = await apiService.adjustStock(data);
             return response.data;
         },
@@ -193,12 +187,122 @@ export const useReserveStock = () => {
             // This would use a reserve stock API endpoint
             const response = await apiService.adjustStock({
                 ...data,
-                type: 'RESERVATION'
+                type: 'ADJUSTMENT'
             });
             return response.data;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['inventory'] });
+        },
+    });
+};
+
+// Excel Import hooks
+export const useImportInventory = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (data: {
+            file: File;
+            branchId: string;
+            importMode: 'replace' | 'add' | 'subtract';
+        }) => {
+            const response = await apiService.importInventoryFromExcel(
+                data.file,
+                data.branchId,
+                data.importMode
+            );
+            return response.data.data as ImportResult;
+        },
+        onSuccess: (result: ImportResult) => {
+            queryClient.invalidateQueries({ queryKey: ['inventory'] });
+            queryClient.invalidateQueries({ queryKey: ['products'] });
+            queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+
+            if (result.success) {
+                showSuccess(
+                    'تم استيراد البيانات بنجاح',
+                    `تم معالجة ${result.processedRows} من أصل ${result.totalRows} صف`
+                );
+            } else {
+                showError('خطأ في الاستيراد', result.message);
+            }
+        },
+        onError: (error: any) => {
+            showError('خطأ في استيراد البيانات', error.response?.data?.message || 'حدث خطأ غير متوقع');
+        },
+    });
+};
+
+export const useDownloadTemplate = () => {
+    return useMutation({
+        mutationFn: async () => {
+            const response = await apiService.downloadInventoryTemplate();
+            return response.data;
+        },
+        onSuccess: (blob: Blob) => {
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'inventory_import_template.xlsx';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+            showSuccess('تم تحميل القالب', 'تم تحميل قالب الاستيراد بنجاح');
+        },
+        onError: (error: any) => {
+            showError('خطأ في تحميل القالب', error.response?.data?.message || 'حدث خطأ غير متوقع');
+        },
+    });
+};
+
+export const useExportInventory = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (branchId?: string) => {
+            const response = await apiService.exportInventoryToExcel(branchId);
+            return response.data;
+        },
+        onSuccess: (blob: Blob) => {
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `inventory_export_${new Date().toISOString().split('T')[0]}.xlsx`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+            showSuccess('تم تصدير البيانات', 'تم تصدير بيانات المخزون بنجاح');
+        },
+        onError: (error: any) => {
+            showError('خطأ في التصدير', error.response?.data?.message || 'حدث خطأ غير متوقع');
+        },
+    });
+};
+
+export const useDeleteAllInventory = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async () => {
+            const response = await apiService.deleteAllInventory();
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['inventory'] });
+            queryClient.invalidateQueries({ queryKey: ['products'] });
+            queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+
+            showSuccess('تم حذف جميع البيانات', 'تم حذف جميع بيانات المخزون بنجاح');
+        },
+        onError: (error: any) => {
+            showError('خطأ في الحذف', error.response?.data?.message || 'حدث خطأ غير متوقع');
         },
     });
 };

@@ -40,8 +40,8 @@ const navigation: SidebarItem[] = [
   { name: 'البانرات', href: '/dashboard/banners', icon: Image },
   { name: 'طلبات التجار', href: '/dashboard/merchants', icon: Store },
   // { name: 'العملاء', href: '/dashboard/customers', icon: Users },
-  // { name: 'المخزون', href: '/dashboard/inventory', icon: Package },
-  // { name: 'الإشعارات', href: '/dashboard/notifications', icon: Bell, badge: 3 },
+  { name: 'المخزون', href: '/dashboard/inventory', icon: Package },
+  { name: 'الإشعارات', href: '/dashboard/notifications', icon: Bell },
 
 ];
 

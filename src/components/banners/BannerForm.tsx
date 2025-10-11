@@ -6,6 +6,7 @@ import { ArrowLeft, Upload, X, Image as ImageIcon, ChevronDown } from 'lucide-re
 import { useBannerForm } from '@/hooks/useBanners';
 import { useProducts, useCategories, useSubCategories } from '@/hooks';
 import { CreateBannerData, UpdateBannerData, Product, Category, SubCategory } from '@/types';
+import { getImageUrl } from '@/utils/hepler';
 
 interface BannerFormProps {
     bannerId?: string;
@@ -249,7 +250,7 @@ export default function BannerForm({ bannerId }: BannerFormProps) {
                             {imagePreview ? (
                                 <div className="relative">
                                     <img
-                                        src={imagePreview}
+                                        src={getImageUrl(imagePreview)}
                                         alt="Banner preview"
                                         className="w-full h-48 object-cover rounded-lg border border-gray-300"
                                     />

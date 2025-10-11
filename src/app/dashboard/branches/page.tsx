@@ -289,9 +289,6 @@ export default function BranchesPage() {
                                     <tr key={branch.id} className="hover:bg-gray-50">
                                         <td className="table-cell">
                                             <div className="flex items-center">
-                                                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                                                    <Building2 className="h-5 w-5 text-blue-600" />
-                                                </div>
                                                 <div>
                                                     <div className="font-medium text-gray-900">{branch.name}</div>
                                                 </div>

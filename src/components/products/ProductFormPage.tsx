@@ -261,7 +261,7 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
                         sku: '',
                         wholeSalePrice: 0,
                         salePrice: undefined,
-                        currency: 'SYP',
+                        currency: 'USD',
                         stockQuantity: 0,
                         isOnSale: false,
                         isActive: true

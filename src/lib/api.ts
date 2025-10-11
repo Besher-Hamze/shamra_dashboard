@@ -27,7 +27,8 @@ import type {
     InventoryQueryParams,
     StockAdjustmentData,
     Notification,
-    NotificationsQueryParams,
+    CreateNotificationData,
+    NotificationStats,
     DashboardStats,
     SalesData,
     OrderStats,
@@ -528,9 +529,48 @@ class ApiService {
         return this.api.get('/inventory/stats', { params: { branchId } });
     }
 
-    // Notifications endpoints
-    async getNotifications(params?: NotificationsQueryParams): Promise<ApiResponse<PaginatedResponse<Notification>>> {
-        return this.api.get('/notifications/my', { params });
+    // Excel Import endpoints
+    async importInventoryFromExcel(file: File, branchId: string, importMode: 'replace' | 'add' | 'subtract' = 'replace'): Promise<AxiosResponse<ApiResponse<any>>> {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('branchId', branchId);
+        formData.append('importMode', importMode);
+
+        return this.api.post('/inventory/import', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+    }
+
+    async downloadInventoryTemplate(): Promise<AxiosResponse<Blob>> {
+        return this.api.get('/inventory/import/template', {
+            responseType: 'blob'
+        });
+    }
+
+    async exportInventoryToExcel(branchId?: string): Promise<AxiosResponse<Blob>> {
+        return this.api.get('/inventory/export', {
+            params: { branchId },
+            responseType: 'blob'
+        });
+    }
+
+    async deleteAllInventory(): Promise<AxiosResponse<ApiResponse<null>>> {
+        return this.api.delete('/inventory/delete-all');
+    }
+
+    // Simple Notifications endpoints
+    async getNotifications(): Promise<AxiosResponse<ApiResponse<Notification[]>>> {
+        return this.api.get('/notifications/admin');
+    }
+
+    async createNotification(data: CreateNotificationData): Promise<AxiosResponse<ApiResponse<Notification>>> {
+        return this.api.post('/notifications', data);
+    }
+
+    async broadcastNotification(title: string, message: string): Promise<AxiosResponse<ApiResponse<Notification>>> {
+        return this.api.post('/notifications/broadcast', { title, message });
     }
 
     async markNotificationAsRead(id: string): Promise<AxiosResponse<ApiResponse<Notification>>> {
@@ -541,8 +581,12 @@ class ApiService {
         return this.api.patch('/notifications/mark-all-read');
     }
 
-    async getUnreadCount(): Promise<AxiosResponse<ApiResponse<{ count: number }>>> {
-        return this.api.get('/notifications/unread-count');
+    async getNotificationStats(): Promise<AxiosResponse<ApiResponse<NotificationStats>>> {
+        return this.api.get('/notifications/stats');
+    }
+
+    async deleteNotification(id: string): Promise<AxiosResponse<ApiResponse<null>>> {
+        return this.api.delete(`/notifications/${id}`);
     }
 
     // Users endpoints
@@ -587,7 +631,7 @@ class ApiService {
     }
 
     // Banners endpoints
-    async getBanners(params?: BannersQueryParams): Promise<AxiosResponse<ApiResponse<PaginatedResponse<Banner>>>> {
+    async getBanners(params?: BannersQueryParams): Promise<AxiosResponse<PaginatedResponse<Banner>>> {
         // Only include params if they exist and are not empty
         const queryParams = params && Object.keys(params).length > 0 ? { params } : {};
         return this.api.get('/banners', queryParams);

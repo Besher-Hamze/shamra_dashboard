@@ -552,24 +552,59 @@ export interface StockAdjustmentData {
     notes?: string;
 }
 
-// Notification types
+// Excel Import types
+export interface ImportInventoryData {
+    branchId: string;
+    importMode: 'replace' | 'add' | 'subtract';
+    notes?: string;
+}
+
+export interface ImportResult {
+    success: boolean;
+    message: string;
+    totalRows: number;
+    processedRows: number;
+    skippedRows: number;
+    errors: ImportError[];
+    summary: ImportSummary;
+}
+
+export interface ImportError {
+    row: number;
+    productCode: string;
+    error: string;
+    data?: any;
+}
+
+export interface ImportSummary {
+    productsUpdated: number;
+    productsCreated: number;
+    productsNotFound: number;
+    totalQuantityUpdated: number;
+    totalValueUpdated: number;
+}
+
+// Simple Notification types
 export interface Notification {
     id: string;
     title: string;
-    titleAr?: string;
     message: string;
-    messageAr?: string;
-    type: 'ORDER' | 'LOW_STOCK' | 'SYSTEM' | 'CUSTOMER' | 'PAYMENT' | 'INVENTORY';
-    recipientId: string;
-    branchId?: string;
-    productId?: string;
-    orderId?: string;
-    priority: 'low' | 'medium' | 'high' | 'urgent';
-    channels: ('app' | 'email' | 'sms')[];
+    recipientId?: string; // If null/undefined, it's sent to all users
     isRead: boolean;
-    metadata?: Record<string, any>;
     createdAt: string;
     readAt?: string;
+}
+
+export interface CreateNotificationData {
+    title: string;
+    message: string;
+    recipientId?: string; // Optional - if not provided, sends to all users
+}
+
+export interface NotificationStats {
+    totalNotifications: number;
+    unreadCount: number;
+    readCount: number;
 }
 
 // Dashboard and Statistics types
