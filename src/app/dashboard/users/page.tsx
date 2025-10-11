@@ -15,6 +15,7 @@ import {
 import Modal from '@/components/ui/Modal';
 import UserForm from '@/components/users/UserForm';
 import { useUserManagement } from '@/hooks';
+import { useBranches } from '@/hooks/useBranches';
 import { User, UserRole } from '@/types';
 import { formatDate } from '@/utils/hepler';
 
@@ -27,6 +28,8 @@ export default function UsersPage() {
         setRoleFilter,
         statusFilter,
         setStatusFilter,
+        branchFilter,
+        setBranchFilter,
         currentPage,
         setCurrentPage,
         pageSize,
@@ -52,6 +55,7 @@ export default function UsersPage() {
         handleToggleActive,
         handleUpgradeToMerchant,
         handleUpgradeToCustomer,
+        handleChangeBranch,
         handleAddUser,
         handleCloseUserForm,
         handleCloseUserDetails,
@@ -62,6 +66,9 @@ export default function UsersPage() {
         getRoleLabel,
         refetch,
     } = useUserManagement();
+
+    // Get branches for change branch functionality
+    const { data: branchesData } = useBranches({ limit: 100 });
 
     if (error) {
         return (
@@ -99,7 +106,7 @@ export default function UsersPage() {
             {/* Filters */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
                 <form onSubmit={handleSearch} className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                         {/* Search */}
                         <div className="relative">
                             <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -143,6 +150,23 @@ export default function UsersPage() {
                             <option value="inactive">غير نشط</option>
                         </select>
 
+                        {/* Branch Filter */}
+                        <select
+                            value={branchFilter}
+                            onChange={(e) => {
+                                setBranchFilter(e.target.value);
+                                handleFilterChange();
+                            }}
+                            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                            <option value="">جميع الفروع</option>
+                            {branchesData?.data?.map((branch) => (
+                                <option key={branch.id} value={branch.id}>
+                                    {branch.name}
+                                </option>
+                            ))}
+                        </select>
+
                         {/* Search Button */}
                         <button
                             type="submit"
@@ -171,6 +195,9 @@ export default function UsersPage() {
                                     الدور
                                 </th>
                                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    الفرع
+                                </th>
+                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     الحالة
                                 </th>
                                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -184,7 +211,7 @@ export default function UsersPage() {
                         <tbody className="bg-white divide-y divide-gray-200">
                             {isLoading ? (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-12 text-center">
+                                    <td colSpan={7} className="px-6 py-12 text-center">
                                         <div className="flex items-center justify-center">
                                             <RefreshCw className="w-6 h-6 animate-spin text-blue-600 ml-2" />
                                             <span className="text-gray-600">جاري التحميل...</span>
@@ -193,7 +220,7 @@ export default function UsersPage() {
                                 </tr>
                             ) : users.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                                         لا توجد مستخدمين
                                     </td>
                                 </tr>
@@ -234,6 +261,13 @@ export default function UsersPage() {
                                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleBadgeColor(user.role)}`}>
                                                 {getRoleLabel(user.role)}
                                             </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {user.branchId ? (
+                                                branchesData?.data?.find(branch => branch.id === user.branchId)?.name || 'فرع غير محدد'
+                                            ) : (
+                                                <span className="text-gray-400">لا يوجد فرع</span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${user.isActive
@@ -319,6 +353,25 @@ export default function UsersPage() {
                                                                     <UserCheck className="w-4 h-4 ml-3" />
                                                                     ترقية لعميل
                                                                 </button>
+                                                            )}
+                                                            {branchesData?.data && branchesData.data.length > 0 && (
+                                                                <div className="border-t border-gray-200">
+                                                                    <div className="px-4 py-2 text-xs font-medium text-gray-500 uppercase">
+                                                                        تغيير الفرع
+                                                                    </div>
+                                                                    {branchesData.data.map((branch) => (
+                                                                        <button
+                                                                            key={branch.id}
+                                                                            onClick={() => {
+                                                                                handleChangeBranch(user, branch.id);
+                                                                                setShowActionsMenu(null);
+                                                                            }}
+                                                                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                                        >
+                                                                            <span className="ml-3">{branch.name}</span>
+                                                                        </button>
+                                                                    ))}
+                                                                </div>
                                                             )}
                                                             <button
                                                                 onClick={() => {
@@ -465,6 +518,16 @@ export default function UsersPage() {
                                 <label className="text-sm font-medium text-gray-500">الحالة</label>
                                 <p className="mt-1 text-sm text-gray-900">
                                     {selectedUser.isActive ? 'نشط' : 'غير نشط'}
+                                </p>
+                            </div>
+                            <div>
+                                <label className="text-sm font-medium text-gray-500">الفرع</label>
+                                <p className="mt-1 text-sm text-gray-900">
+                                    {selectedUser.branchId ? (
+                                        branchesData?.data?.find(branch => branch.id === selectedUser.branchId)?.name || 'فرع غير محدد'
+                                    ) : (
+                                        'لا يوجد فرع'
+                                    )}
                                 </p>
                             </div>
                             <div>

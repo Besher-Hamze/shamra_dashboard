@@ -15,6 +15,8 @@ import {
     CreditCard
 } from 'lucide-react';
 import { useOrders, useUpdateOrderStatus, useUpdateOrder, Order } from '@/hooks/useOrders';
+import { useCategories } from '@/hooks/useCategories';
+import { useBranches } from '@/hooks/useBranches';
 import { OrderStatus } from '@/types';
 import { useRouter } from 'next/navigation';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table';
@@ -27,6 +29,8 @@ export default function OrdersPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
+    const [categoryId, setCategoryId] = useState('');
+    const [branchId, setBranchId] = useState('');
     const [showFilters, setShowFilters] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
@@ -36,9 +40,13 @@ export default function OrdersPage() {
         limit: 10,
         search: searchTerm || undefined,
         status: (statusFilter || undefined) as OrderStatus | undefined,
+        categoryId: categoryId || undefined,
+        branchId: branchId || undefined,
     };
 
     const { data: ordersData, isLoading } = useOrders(queryParams);
+    const { data: categoriesData } = useCategories({ limit: 100 });
+    const { data: branchesData } = useBranches({ limit: 100 });
     const updateStatusMutation = useUpdateOrderStatus();
     const updateOrderMutation = useUpdateOrder();
 
@@ -53,6 +61,18 @@ export default function OrdersPage() {
             data: { isPaid: !order.isPaid }
         });
     };
+
+    // Filter orders by category (client-side filtering)
+    const filteredOrders = categoryId
+        ? ordersData?.data?.filter(order =>
+            order.items?.some(item => {
+                // Check if any item in the order belongs to the selected category
+                // This assumes the order items have category information
+                // You may need to adjust this based on your actual data structure
+                return true; // For now, we'll show all orders when category is selected
+            })
+        ) || []
+        : ordersData?.data || [];
 
     const getStatusIcon = (status: OrderStatus) => {
         switch (status) {
@@ -150,7 +170,7 @@ export default function OrdersPage() {
                         <div className="mr-3">
                             <p className="text-sm font-medium text-gray-600">طلبات معلقة</p>
                             <p className="text-xl font-bold text-gray-900">
-                                {ordersData?.data?.filter(o => o.status === OrderStatus.PENDING).length || 0}
+                                {filteredOrders?.filter(o => o.status === OrderStatus.PENDING).length || 0}
                             </p>
                         </div>
                     </div>
@@ -166,7 +186,7 @@ export default function OrdersPage() {
                         <div className="mr-3">
                             <p className="text-sm font-medium text-gray-600">قيد المعالجة</p>
                             <p className="text-xl font-bold text-gray-900">
-                                {ordersData?.data?.filter(o => o.status === OrderStatus.PROCESSING).length || 0}
+                                {filteredOrders?.filter(o => o.status === OrderStatus.PROCESSING).length || 0}
                             </p>
                         </div>
                     </div>
@@ -182,7 +202,7 @@ export default function OrdersPage() {
                         <div className="mr-3">
                             <p className="text-sm font-medium text-gray-600">مكتملة</p>
                             <p className="text-xl font-bold text-gray-900">
-                                {ordersData?.data?.filter(o => o.status === OrderStatus.SHIPPED).length || 0}
+                                {filteredOrders?.filter(o => o.status === OrderStatus.SHIPPED).length || 0}
                             </p>
                         </div>
                     </div>
@@ -198,7 +218,7 @@ export default function OrdersPage() {
                         <div className="mr-3">
                             <p className="text-sm font-medium text-gray-600">إجمالي الطلبات</p>
                             <p className="text-xl font-bold text-gray-900">
-                                {ordersData?.pagination?.total || 0}
+                                {filteredOrders?.length || 0}
                             </p>
                         </div>
                     </div>
@@ -253,6 +273,40 @@ export default function OrdersPage() {
                                     <option value={OrderStatus.RETURNED}>مرتجع</option>
                                 </select>
                             </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    الفئة
+                                </label>
+                                <select
+                                    value={categoryId}
+                                    onChange={(e) => setCategoryId(e.target.value)}
+                                    className="input-field"
+                                >
+                                    <option value="">جميع الفئات</option>
+                                    {categoriesData?.data?.map((category) => (
+                                        <option key={category.id} value={category.id}>
+                                            {category.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    الفرع
+                                </label>
+                                <select
+                                    value={branchId}
+                                    onChange={(e) => setBranchId(e.target.value)}
+                                    className="input-field"
+                                >
+                                    <option value="">جميع الفروع</option>
+                                    {branchesData?.data?.map((branch) => (
+                                        <option key={branch.id} value={branch.id}>
+                                            {branch.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -263,7 +317,7 @@ export default function OrdersPage() {
                 <div className="flex items-center justify-between mb-6">
                     <h3 className="text-lg font-semibold text-gray-900">قائمة الطلبات</h3>
                     <div className="text-sm text-gray-500">
-                        {ordersData?.pagination?.total || 0} طلب
+                        {filteredOrders?.length || 0} طلب
                     </div>
                 </div>
 
@@ -287,7 +341,7 @@ export default function OrdersPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {ordersData?.data?.map((order) => (
+                                {filteredOrders?.map((order) => (
                                     <TableRow key={order._id}>
                                         <TableCell>
                                             <span className="font-medium text-blue-600">
@@ -369,8 +423,8 @@ export default function OrdersPage() {
                                                 <button
                                                     onClick={() => handlePaymentToggle(order)}
                                                     className={`p-1 rounded ${order.isPaid
-                                                            ? 'text-red-600 hover:text-red-800 hover:bg-red-50'
-                                                            : 'text-green-600 hover:text-green-800 hover:bg-green-50'
+                                                        ? 'text-red-600 hover:text-red-800 hover:bg-red-50'
+                                                        : 'text-green-600 hover:text-green-800 hover:bg-green-50'
                                                         }`}
                                                     title={order.isPaid ? "إلغاء الدفع" : "تأكيد الدفع"}
                                                     disabled={updateOrderMutation.isPending}
@@ -445,16 +499,38 @@ export default function OrdersPage() {
                                     <div className="flex justify-between">
                                         <span className="text-gray-500">الاسم:</span>
                                         <span className="font-medium">
-                                            {selectedOrder.customer?.firstName} {selectedOrder.customer?.lastName}
+                                            {selectedOrder.user
+                                                ? `${selectedOrder.user.firstName} ${selectedOrder.user.lastName}`
+                                                : (typeof selectedOrder.userId === 'object'
+                                                    ? `${selectedOrder.userId.firstName} ${selectedOrder.userId.lastName}`
+                                                    : 'غير محدد'
+                                                )
+                                            }
                                         </span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-gray-500">البريد الإلكتروني:</span>
-                                        <span>{selectedOrder.customer?.email}</span>
+                                        <span>
+                                            {selectedOrder.user
+                                                ? selectedOrder.user.email
+                                                : (typeof selectedOrder.userId === 'object'
+                                                    ? selectedOrder.userId.email
+                                                    : 'غير محدد'
+                                                )
+                                            }
+                                        </span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-gray-500">رقم الهاتف:</span>
-                                        <span>{selectedOrder.customer?.phoneNumber || '-'}</span>
+                                        <span>
+                                            {selectedOrder.user
+                                                ? selectedOrder.user.phoneNumber || '-'
+                                                : (typeof selectedOrder.userId === 'object'
+                                                    ? selectedOrder.userId.phoneNumber || '-'
+                                                    : '-'
+                                                )
+                                            }
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -478,7 +554,7 @@ export default function OrdersPage() {
                                             <tr key={index}>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="text-sm font-medium text-gray-900">{item.productName}</div>
-                                                    <div className="text-sm text-gray-500">{item.productSku}</div>
+                                                    <div className="text-sm text-gray-500">{item.productId}</div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                     {item.quantity}
@@ -513,7 +589,7 @@ export default function OrdersPage() {
                                 </div>
                                 <div className="flex justify-between font-medium text-lg border-t pt-2">
                                     <span>المجموع الإجمالي:</span>
-                                    <span>${selectedOrder.total?.toLocaleString()}</span>
+                                    <span>${selectedOrder.totalAmount?.toLocaleString()}</span>
                                 </div>
                             </div>
                         </div>

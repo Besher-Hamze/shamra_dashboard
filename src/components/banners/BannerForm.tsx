@@ -1,12 +1,29 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Upload, X, Image as ImageIcon, ChevronDown } from 'lucide-react';
 import { useBannerForm } from '@/hooks/useBanners';
 import { useProducts, useCategories, useSubCategories } from '@/hooks';
 import { CreateBannerData, UpdateBannerData, Product, Category, SubCategory } from '@/types';
 import { getImageUrl } from '@/utils/hepler';
+
+// Custom debounce hook
+function useDebounce<T>(value: T, delay: number): T {
+    const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedValue(value);
+        }, delay);
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [value, delay]);
+
+    return debouncedValue;
+}
 
 interface BannerFormProps {
     bannerId?: string;
@@ -16,10 +33,37 @@ export default function BannerForm({ bannerId }: BannerFormProps) {
     const router = useRouter();
     const { banner, isLoading, isEditing, handleSubmit, isSubmitting } = useBannerForm(bannerId);
 
-    // Fetch data for dropdowns
-    const { data: productsData } = useProducts({ limit: 1000 });
-    const { data: categoriesData } = useCategories({ limit: 1000 });
-    const { data: subCategoriesData } = useSubCategories({ limit: 1000 });
+    const [searchTerms, setSearchTerms] = useState<{
+        product: string;
+        category: string;
+        subcategory: string;
+    }>({
+        product: '',
+        category: '',
+        subcategory: '',
+    });
+
+    // Debounced search terms for API calls
+    const debouncedProductSearch = useDebounce(searchTerms.product, 300);
+    const debouncedCategorySearch = useDebounce(searchTerms.category, 300);
+    const debouncedSubCategorySearch = useDebounce(searchTerms.subcategory, 300);
+
+    // Fetch data for dropdowns with search parameters
+    const { data: productsData, isLoading: productsLoading } = useProducts({
+        limit: 100,
+        search: debouncedProductSearch || undefined,
+        // isActive: true
+    });
+    const { data: categoriesData, isLoading: categoriesLoading } = useCategories({
+        limit: 100,
+        search: debouncedCategorySearch || undefined,
+        // isActive: true
+    });
+    const { data: subCategoriesData, isLoading: subCategoriesLoading } = useSubCategories({
+        limit: 100,
+        search: debouncedSubCategorySearch || undefined,
+        // isActive: true
+    });
 
     const products = (productsData as any)?.data?.data || (productsData as any)?.data || [];
     const categories = (categoriesData as any)?.data?.data || (categoriesData as any)?.data || [];
@@ -136,6 +180,19 @@ export default function BannerForm({ bannerId }: BannerFormProps) {
         return subCategories.find((sc: any) => (sc._id || sc.id) === formData.subCategoryId);
     };
 
+    // Helper functions for getting total counts (for display purposes)
+    const getTotalProducts = () => {
+        return (productsData as any)?.total || products.length;
+    };
+
+    const getTotalCategories = () => {
+        return (categoriesData as any)?.total || categories.length;
+    };
+
+    const getTotalSubCategories = () => {
+        return (subCategoriesData as any)?.total || subCategories.length;
+    };
+
     const handleTargetTypeChange = (type: 'product' | 'category' | 'subcategory') => {
         setSelectedTargetType(type);
         setFormData(prev => ({
@@ -148,6 +205,12 @@ export default function BannerForm({ bannerId }: BannerFormProps) {
             product: false,
             category: false,
             subcategory: false,
+        });
+        // Clear search terms when changing target type
+        setSearchTerms({
+            product: '',
+            category: '',
+            subcategory: '',
         });
     };
 
@@ -163,12 +226,24 @@ export default function BannerForm({ bannerId }: BannerFormProps) {
             ...prev,
             [type]: false,
         }));
+        // Clear search term when item is selected
+        setSearchTerms(prev => ({
+            ...prev,
+            [type]: '',
+        }));
     };
 
     const toggleDropdown = (type: 'product' | 'category' | 'subcategory') => {
         setIsDropdownOpen(prev => ({
             ...prev,
             [type]: !prev[type],
+        }));
+    };
+
+    const handleSearchChange = (type: 'product' | 'category' | 'subcategory', value: string) => {
+        setSearchTerms(prev => ({
+            ...prev,
+            [type]: value,
         }));
     };
 
@@ -319,17 +394,49 @@ export default function BannerForm({ bannerId }: BannerFormProps) {
                                         </button>
 
                                         {isDropdownOpen.product && (
-                                            <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none">
-                                                {products.map((product: any) => (
-                                                    <button
-                                                        key={product._id || product.id}
-                                                        type="button"
-                                                        onClick={() => handleItemSelect('product', product)}
-                                                        className="w-full text-right px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
-                                                    >
-                                                        {product.name}
-                                                    </button>
-                                                ))}
+                                            <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md text-base ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                                {/* Search Input */}
+                                                <div className="p-2 border-b border-gray-200">
+                                                    <input
+                                                        type="text"
+                                                        placeholder="البحث في المنتجات..."
+                                                        value={searchTerms.product}
+                                                        onChange={(e) => handleSearchChange('product', e.target.value)}
+                                                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    />
+                                                    {searchTerms.product && (
+                                                        <div className="mt-1 text-xs text-gray-500">
+                                                            {products.length} من {getTotalProducts()} منتج
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                {/* Results */}
+                                                <div className="max-h-48 overflow-auto">
+                                                    {productsLoading ? (
+                                                        <div className="px-4 py-2 text-sm text-gray-500 text-center">
+                                                            <div className="flex items-center justify-center">
+                                                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 ml-2"></div>
+                                                                جاري البحث...
+                                                            </div>
+                                                        </div>
+                                                    ) : products.length > 0 ? (
+                                                        products.map((product: any) => (
+                                                            <button
+                                                                key={product._id || product.id}
+                                                                type="button"
+                                                                onClick={() => handleItemSelect('product', product)}
+                                                                className="w-full text-right px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
+                                                            >
+                                                                {product.name}
+                                                            </button>
+                                                        ))
+                                                    ) : (
+                                                        <div className="px-4 py-2 text-sm text-gray-500 text-center">
+                                                            {searchTerms.product ? 'لا توجد منتجات مطابقة' : 'لا توجد منتجات متاحة'}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                         )}
                                     </div>
@@ -363,17 +470,49 @@ export default function BannerForm({ bannerId }: BannerFormProps) {
                                         </button>
 
                                         {isDropdownOpen.category && (
-                                            <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none">
-                                                {categories.map((category: any) => (
-                                                    <button
-                                                        key={category._id || category.id}
-                                                        type="button"
-                                                        onClick={() => handleItemSelect('category', category)}
-                                                        className="w-full text-right px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
-                                                    >
-                                                        {category.name}
-                                                    </button>
-                                                ))}
+                                            <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md text-base ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                                {/* Search Input */}
+                                                <div className="p-2 border-b border-gray-200">
+                                                    <input
+                                                        type="text"
+                                                        placeholder="البحث في الأصناف..."
+                                                        value={searchTerms.category}
+                                                        onChange={(e) => handleSearchChange('category', e.target.value)}
+                                                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    />
+                                                    {searchTerms.category && (
+                                                        <div className="mt-1 text-xs text-gray-500">
+                                                            {categories.length} من {getTotalCategories()} صنف
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                {/* Results */}
+                                                <div className="max-h-48 overflow-auto">
+                                                    {categoriesLoading ? (
+                                                        <div className="px-4 py-2 text-sm text-gray-500 text-center">
+                                                            <div className="flex items-center justify-center">
+                                                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 ml-2"></div>
+                                                                جاري البحث...
+                                                            </div>
+                                                        </div>
+                                                    ) : categories.length > 0 ? (
+                                                        categories.map((category: any) => (
+                                                            <button
+                                                                key={category._id || category.id}
+                                                                type="button"
+                                                                onClick={() => handleItemSelect('category', category)}
+                                                                className="w-full text-right px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
+                                                            >
+                                                                {category.name}
+                                                            </button>
+                                                        ))
+                                                    ) : (
+                                                        <div className="px-4 py-2 text-sm text-gray-500 text-center">
+                                                            {searchTerms.category ? 'لا توجد أصناف مطابقة' : 'لا توجد أصناف متاحة'}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                         )}
                                     </div>
@@ -407,17 +546,49 @@ export default function BannerForm({ bannerId }: BannerFormProps) {
                                         </button>
 
                                         {isDropdownOpen.subcategory && (
-                                            <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none">
-                                                {subCategories.map((subCategory: any) => (
-                                                    <button
-                                                        key={subCategory._id || subCategory.id}
-                                                        type="button"
-                                                        onClick={() => handleItemSelect('subcategory', subCategory)}
-                                                        className="w-full text-right px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
-                                                    >
-                                                        {subCategory.name}
-                                                    </button>
-                                                ))}
+                                            <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md text-base ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                                {/* Search Input */}
+                                                <div className="p-2 border-b border-gray-200">
+                                                    <input
+                                                        type="text"
+                                                        placeholder="البحث في الأصناف الفرعية..."
+                                                        value={searchTerms.subcategory}
+                                                        onChange={(e) => handleSearchChange('subcategory', e.target.value)}
+                                                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    />
+                                                    {searchTerms.subcategory && (
+                                                        <div className="mt-1 text-xs text-gray-500">
+                                                            {subCategories.length} من {getTotalSubCategories()} صنف فرعي
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                {/* Results */}
+                                                <div className="max-h-48 overflow-auto">
+                                                    {subCategoriesLoading ? (
+                                                        <div className="px-4 py-2 text-sm text-gray-500 text-center">
+                                                            <div className="flex items-center justify-center">
+                                                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 ml-2"></div>
+                                                                جاري البحث...
+                                                            </div>
+                                                        </div>
+                                                    ) : subCategories.length > 0 ? (
+                                                        subCategories.map((subCategory: any) => (
+                                                            <button
+                                                                key={subCategory._id || subCategory.id}
+                                                                type="button"
+                                                                onClick={() => handleItemSelect('subcategory', subCategory)}
+                                                                className="w-full text-right px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
+                                                            >
+                                                                {subCategory.name}
+                                                            </button>
+                                                        ))
+                                                    ) : (
+                                                        <div className="px-4 py-2 text-sm text-gray-500 text-center">
+                                                            {searchTerms.subcategory ? 'لا توجد أصناف فرعية مطابقة' : 'لا توجد أصناف فرعية متاحة'}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                         )}
                                     </div>

@@ -427,7 +427,7 @@ class ApiService {
     }
 
     // Sub-Categories endpoints
-    async getSubCategories(params?: any): Promise<ApiResponse<SubCategory[]>> {
+    async getSubCategories(params?: any): Promise<SubCategory[]> {
         return this.api.get('/sub-categories', { params });
     }
 
@@ -616,6 +616,10 @@ class ApiService {
 
     async changeRole(id: string, role: UserRole): Promise<AxiosResponse<ApiResponse<User>>> {
         return this.api.patch(`/users/${id}/change-role`, { role });
+    }
+
+    async changeBranch(id: string, branchId: string): Promise<AxiosResponse<ApiResponse<User>>> {
+        return this.api.patch(`/users/${id}/change-branch`, { branchId });
     }
 
     async changePassword(changePasswordData: ChangePasswordData): Promise<AxiosResponse<ApiResponse<null>>> {

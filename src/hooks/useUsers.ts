@@ -112,6 +112,19 @@ export function useUserMutations() {
         },
     });
 
+    // Change branch mutation
+    const changeBranchMutation = useMutation({
+        mutationFn: ({ id, branchId }: { id: string; branchId: string }) => apiService.changeBranch(id, branchId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['users'] });
+            queryClient.invalidateQueries({ queryKey: ['user'] });
+            showSuccess('تم تغيير الفرع بنجاح', 'تم تغيير فرع المستخدم بنجاح');
+        },
+        onError: (error: any) => {
+            showError('خطأ في تغيير الفرع', error.response?.data?.message || 'حدث خطأ غير متوقع');
+        },
+    });
+
     const getRoleLabel = (role: UserRole) => {
         switch (role) {
             case UserRole.ADMIN:
@@ -135,6 +148,7 @@ export function useUserMutations() {
         deleteUser: deleteUserMutation,
         toggleActive: toggleActiveMutation,
         changeRole: changeRoleMutation,
+        changeBranch: changeBranchMutation,
     };
 }
 
@@ -197,6 +211,7 @@ export function useUserManagement() {
         search: searchTerm || undefined,
         role: (roleFilter as UserRole) || undefined,
         isActive: statusFilter ? statusFilter === 'active' : undefined,
+        branchId: branchFilter || undefined,
     };
 
     // Get users data
@@ -269,6 +284,16 @@ export function useUserManagement() {
             'ترقية المستخدم',
             `هل تريد ترقية المستخدم ${user.firstName} ${user.lastName} إلى عميل؟`,
             () => mutations.changeRole.mutate({ id: user.id, role: UserRole.CUSTOMER }),
+            undefined,
+            'info'
+        );
+    };
+
+    const handleChangeBranch = (user: User, branchId: string) => {
+        confirmAction(
+            'تغيير الفرع',
+            `هل تريد تغيير فرع المستخدم ${user.firstName} ${user.lastName}؟`,
+            () => mutations.changeBranch.mutate({ id: user.id, branchId }),
             undefined,
             'info'
         );
@@ -369,6 +394,7 @@ export function useUserManagement() {
         handleToggleActive,
         handleUpgradeToMerchant,
         handleUpgradeToCustomer,
+        handleChangeBranch,
         handleAddUser,
         handleCloseUserForm,
         handleCloseUserDetails,

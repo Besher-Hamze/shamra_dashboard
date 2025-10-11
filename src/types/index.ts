@@ -41,6 +41,7 @@ export interface User {
     phoneNumber?: string;
     profileImage?: string;
     branchId?: string;
+    branch?: Branch;
     isActive: boolean;
     createdAt: string;
     updatedAt: string;
