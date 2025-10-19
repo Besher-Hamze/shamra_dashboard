@@ -353,19 +353,13 @@ export default function OrdersPage() {
                                                 <div className="font-medium text-gray-900">
                                                     {order.user
                                                         ? `${order.user.firstName} ${order.user.lastName}`
-                                                        : (typeof order.userId === 'object'
-                                                            ? `${order.userId.firstName} ${order.userId.lastName}`
-                                                            : 'غير محدد'
-                                                        )
+                                                        : 'غير محدد'
                                                     }
                                                 </div>
                                                 <div className="text-sm text-gray-500">
                                                     {order.user
-                                                        ? order.user.email
-                                                        : (typeof order.userId === 'object'
-                                                            ? order.userId.email
-                                                            : 'غير محدد'
-                                                        )
+                                                        ? order.user.phoneNumber
+                                                        : 'غير محدد'
                                                     }
                                                 </div>
                                             </div>

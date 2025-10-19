@@ -7,7 +7,7 @@ import { AuthService } from '@/lib/auth';
 import { useLogin } from '@/hooks/useAuth';
 
 export default function LoginPage() {
-    const [email, setEmail] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const router = useRouter();
@@ -22,7 +22,7 @@ export default function LoginPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        loginMutation.mutate({ email, password });
+        loginMutation.mutate({ phoneNumber, password });
     };
 
     return (
@@ -54,18 +54,18 @@ export default function LoginPage() {
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                                البريد الإلكتروني
+                            <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                                رقم الهاتف
                             </label>
                             <input
-                                id="email"
-                                name="email"
-                                type="email"
+                                id="phoneNumber"
+                                name="phoneNumber"
+                                type="tel"
                                 required
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                value={phoneNumber}
+                                onChange={(e) => setPhoneNumber(e.target.value)}
                                 className="input-field"
-                                placeholder="أدخل البريد الإلكتروني"
+                                placeholder="أدخل رقم الهاتف"
                                 disabled={loginMutation.isPending}
                             />
                         </div>

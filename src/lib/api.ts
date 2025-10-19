@@ -111,8 +111,8 @@ class ApiService {
     }
 
     // Auth endpoints
-    async login(email: string, password: string): Promise<AxiosResponse<ApiResponse<AuthResponse>>> {
-        return this.api.post('/auth/login', { email, password });
+    async login(phoneNumber: string, password: string): Promise<AxiosResponse<ApiResponse<AuthResponse>>> {
+        return this.api.post('/auth/login', { phoneNumber, password });
     }
 
     async register(userData: Partial<User>): Promise<AxiosResponse<ApiResponse<AuthResponse>>> {
