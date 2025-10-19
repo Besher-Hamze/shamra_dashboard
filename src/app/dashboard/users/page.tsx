@@ -189,7 +189,7 @@ export default function UsersPage() {
                                     المستخدم
                                 </th>
                                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    البريد الإلكتروني
+                                    رقم الهاتف
                                 </th>
                                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     الدور
@@ -249,13 +249,13 @@ export default function UsersPage() {
                                                         {user.firstName} {user.lastName}
                                                     </div>
                                                     <div className="text-sm text-gray-500">
-                                                        {user.phoneNumber || 'لا يوجد رقم هاتف'}
+                                                        {user.phoneNumber || '-'}
                                                     </div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {user.email}
+                                            {user.phoneNumber || '-'}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleBadgeColor(user.role)}`}>
@@ -506,7 +506,7 @@ export default function UsersPage() {
                                 <h3 className="text-lg font-medium text-gray-900">
                                     {selectedUser.firstName} {selectedUser.lastName}
                                 </h3>
-                                <p className="text-gray-600">{selectedUser.email}</p>
+                                <p className="text-gray-600">{selectedUser.phoneNumber || '-'}</p>
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">

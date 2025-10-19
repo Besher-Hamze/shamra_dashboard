@@ -27,7 +27,7 @@ export const useLogin = () => {
             if (data.success) {
                 const { access_token, refresh_token, user } = data.data;
                 AuthService.setTokens(access_token, refresh_token);
-                AuthService.setUser(user);
+                AuthService.setUser(user as any);
                 queryClient.invalidateQueries();
                 router.push('/dashboard/reports');
             }

@@ -416,7 +416,6 @@ export function useUserForm(user?: User | null) {
     const [formData, setFormData] = useState<CreateUserData>({
         firstName: '',
         lastName: '',
-        email: '',
         password: '',
         role: UserRole.EMPLOYEE,
         phoneNumber: '',
@@ -437,10 +436,9 @@ export function useUserForm(user?: User | null) {
             setFormData({
                 firstName: user.firstName,
                 lastName: user.lastName,
-                email: user.email,
+                phoneNumber: user.phoneNumber || '',
                 password: '', // Don't pre-fill password
                 role: user.role,
-                phoneNumber: user.phoneNumber || '',
                 profileImage: user.profileImage || '',
                 branchId: user.branchId || '',
                 isActive: user.isActive,
@@ -477,11 +475,6 @@ export function useUserForm(user?: User | null) {
             newErrors.lastName = 'الاسم الأخير مطلوب';
         }
 
-        if (!formData.email.trim()) {
-            newErrors.email = 'البريد الإلكتروني مطلوب';
-        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            newErrors.email = 'البريد الإلكتروني غير صحيح';
-        }
 
         if (!user && !formData.password.trim()) {
             newErrors.password = 'كلمة المرور مطلوبة';
@@ -513,7 +506,6 @@ export function useUserForm(user?: User | null) {
                 const updateData: UpdateUserData = {
                     firstName: formData.firstName,
                     lastName: formData.lastName,
-                    email: formData.email,
                     phoneNumber: formData.phoneNumber,
                     profileImage: formData.profileImage,
                     branchId: formData.branchId,

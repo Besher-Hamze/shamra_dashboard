@@ -503,18 +503,6 @@ export default function OrdersPage() {
                                         </span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span className="text-gray-500">البريد الإلكتروني:</span>
-                                        <span>
-                                            {selectedOrder.user
-                                                ? selectedOrder.user.email
-                                                : (typeof selectedOrder.userId === 'object'
-                                                    ? selectedOrder.userId.email
-                                                    : 'غير محدد'
-                                                )
-                                            }
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between">
                                         <span className="text-gray-500">رقم الهاتف:</span>
                                         <span>
                                             {selectedOrder.user

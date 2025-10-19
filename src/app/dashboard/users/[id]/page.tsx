@@ -214,8 +214,8 @@ export default function UserDetailsPage() {
                                     <div className="flex items-center">
                                         <Mail className="w-5 h-5 text-gray-400 ml-3" />
                                         <div>
-                                            <p className="text-sm font-medium text-gray-500">البريد الإلكتروني</p>
-                                            <p className="text-sm text-gray-900">{user.email}</p>
+                                            <p className="text-sm font-medium text-gray-500">رقم الهاتف</p>
+                                            <p className="text-sm text-gray-900">{user.phoneNumber || '-'}</p>
                                         </div>
                                     </div>
 

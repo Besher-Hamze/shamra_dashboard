@@ -291,13 +291,13 @@ export default function DashboardPage() {
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                             {(recentOrdersData || []).map((order) => (
-                                <tr key={order.id} className="hover:bg-gray-50">
+                                <tr key={order._id} className="hover:bg-gray-50">
                                     <td className="table-cell font-medium text-blue-600">
                                         {order.orderNumber}
                                     </td>
-                                    <td className="table-cell">{order.customer?.firstName} {order.customer?.lastName}</td>
+                                    <td className="table-cell">{order.user?.firstName} {order.user?.lastName}</td>
                                     <td className="table-cell font-medium">
-                                        ${order.total?.toLocaleString() || '0'}
+                                        ${order.totalAmount?.toLocaleString() || '0'}
                                     </td>
                                     <td className="table-cell">
                                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>

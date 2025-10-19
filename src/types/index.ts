@@ -36,7 +36,6 @@ export interface User {
     id: string;
     firstName: string;
     lastName: string;
-    email: string;
     role: UserRole;
     phoneNumber?: string;
     profileImage?: string;
@@ -57,7 +56,6 @@ export interface AuthResponse {
 export interface CreateUserData {
     firstName: string;
     lastName: string;
-    email: string;
     password: string;
     role?: UserRole;
     phoneNumber?: string;

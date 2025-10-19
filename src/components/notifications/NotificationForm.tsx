@@ -28,9 +28,9 @@ export default function NotificationForm({ onSuccess, onCancel }: NotificationFo
     // Filter users based on search term
     const filteredUsers = users.filter(user => {
         const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
-        const email = user.email.toLowerCase();
+        const phoneNumber = user.phoneNumber?.toLowerCase();
         const searchTerm = userSearchTerm.toLowerCase();
-        return fullName.includes(searchTerm) || email.includes(searchTerm);
+        return fullName.includes(searchTerm) || phoneNumber?.includes(searchTerm) || '';
     });
 
     // Get selected user details
@@ -194,7 +194,7 @@ export default function NotificationForm({ onSuccess, onCancel }: NotificationFo
                                         <p className="text-sm font-medium text-blue-900">
                                             {selectedUser.firstName} {selectedUser.lastName}
                                         </p>
-                                        <p className="text-xs text-blue-600">{selectedUser.email}</p>
+                                        <p className="text-xs text-blue-600">{selectedUser.phoneNumber || '-'}</p>
                                     </div>
                                     <button
                                         type="button"
@@ -226,7 +226,7 @@ export default function NotificationForm({ onSuccess, onCancel }: NotificationFo
                                                     <p className="text-sm font-medium text-gray-900">
                                                         {user.firstName} {user.lastName}
                                                     </p>
-                                                    <p className="text-xs text-gray-500">{user.email}</p>
+                                                    <p className="text-xs text-gray-500">{user.phoneNumber || '-'}</p>
                                                 </div>
                                                 <User className="h-4 w-4 text-gray-400" />
                                             </div>
