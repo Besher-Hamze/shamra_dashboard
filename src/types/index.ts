@@ -330,6 +330,10 @@ export interface Order {
     updatedBy?: string | User;
     createdAt: Date;
     updatedAt: Date;
+    location?: {
+        lat: number;
+        lng: number;
+    },
     totalQuantity?: number; // Virtual field
     // Virtual fields from Mongoose
     user?: User;

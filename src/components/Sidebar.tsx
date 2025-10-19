@@ -42,6 +42,7 @@ const navigation: SidebarItem[] = [
   // { name: 'العملاء', href: '/dashboard/customers', icon: Users },
   { name: 'المخزون', href: '/dashboard/inventory', icon: Package },
   { name: 'الإشعارات', href: '/dashboard/notifications', icon: Bell },
+  { name: 'الإعدادات', href: '/dashboard/settings', icon: Settings },
 
 ];
 

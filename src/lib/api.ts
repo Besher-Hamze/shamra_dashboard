@@ -622,6 +622,23 @@ class ApiService {
         return this.api.patch(`/users/${id}/change-branch`, { branchId });
     }
 
+    // Settings endpoints
+    async getSettings(params?: any): Promise<ApiResponse<any>> {
+        return this.api.get('/settings', { params });
+    }
+
+    async getSettingsByCategory(category: string): Promise<ApiResponse<any>> {
+        return this.api.get(`/settings/category/${category}`);
+    }
+
+    async updateSetting(key: string, data: { value: any }): Promise<ApiResponse<any>> {
+        return this.api.patch(`/settings/${key}`, data);
+    }
+
+    async bulkUpdateSettings(settings: Array<{ key: string; value: any }>): Promise<ApiResponse<any>> {
+        return this.api.post('/settings/bulk-update', { settings });
+    }
+
     async changePassword(changePasswordData: ChangePasswordData): Promise<AxiosResponse<ApiResponse<null>>> {
         return this.api.patch('/users/change-password', changePasswordData);
     }

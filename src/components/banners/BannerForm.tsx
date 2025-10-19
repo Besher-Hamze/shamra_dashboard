@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Upload, X, Image as ImageIcon, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Upload, X, Image as ImageIcon, ChevronDown, ShoppingBag, Package, Tag } from 'lucide-react';
 import { useBannerForm } from '@/hooks/useBanners';
 import { useProducts, useCategories, useSubCategories } from '@/hooks';
 import { CreateBannerData, UpdateBannerData, Product, Category, SubCategory } from '@/types';
@@ -320,34 +320,44 @@ export default function BannerForm({ bannerId }: BannerFormProps) {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Image Upload */}
                     <div className="lg:col-span-2">
-                        <label className="form-label">صورة البانر *</label>
+                        <label className="form-label text-lg font-semibold text-gray-800">صورة البانر *</label>
+                        <p className="text-sm text-gray-600 mb-4">اختر صورة عالية الجودة للبانر</p>
                         <div className="mt-1">
                             {imagePreview ? (
-                                <div className="relative">
+                                <div className="relative group">
                                     <img
                                         src={getImageUrl(imagePreview)}
                                         alt="Banner preview"
-                                        className="w-full h-48 object-cover rounded-lg border border-gray-300"
+                                        className="w-full h-48 object-cover rounded-lg border border-gray-300 shadow-sm"
                                     />
                                     <button
                                         type="button"
                                         onClick={removeImage}
-                                        className="absolute top-2 left-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                                        className="absolute top-3 left-3 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
                                     >
                                         <X className="h-4 w-4" />
                                     </button>
+                                    <div className="absolute bottom-3 left-3 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
+                                        معاينة البانر
+                                    </div>
                                 </div>
                             ) : (
-                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                                    <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
-                                    <div className="mt-4">
+                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 hover:bg-blue-50 transition-colors">
+                                    <div className="flex flex-col items-center">
+                                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                                            <ImageIcon className="h-8 w-8 text-gray-400" />
+                                        </div>
                                         <label htmlFor="image-upload" className="cursor-pointer">
-                                            <span className="mt-2 block text-sm font-medium text-gray-900">
+                                            <span className="block text-lg font-medium text-gray-900 mb-2">
                                                 اختر صورة البانر
                                             </span>
-                                            <span className="mt-1 block text-sm text-gray-500">
+                                            <span className="block text-sm text-gray-500 mb-4">
                                                 PNG, JPG, GIF حتى 10MB
                                             </span>
+                                            <div className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                                <Upload className="h-4 w-4 ml-2" />
+                                                رفع صورة
+                                            </div>
                                         </label>
                                         <input
                                             id="image-upload"
@@ -364,21 +374,30 @@ export default function BannerForm({ bannerId }: BannerFormProps) {
                     </div>
 
                     {/* Target Selection */}
-                    <div>
-                        <label className="form-label">الهدف *</label>
-                        <div className="space-y-4">
+                    <div className="bg-gray-50 rounded-lg p-6">
+                        <label className="form-label text-lg font-semibold text-gray-800">الهدف *</label>
+                        <p className="text-sm text-gray-600 mb-4">اختر نوع الهدف الذي سيتم عرض البانر له</p>
+                        <div className="space-y-6">
                             {/* Product Selection */}
-                            <div>
-                                <label className="flex items-center">
+                            <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-blue-300 transition-colors">
+                                <label className="flex items-center cursor-pointer">
                                     <input
                                         type="radio"
                                         name="targetType"
                                         value="product"
                                         checked={selectedTargetType === 'product'}
                                         onChange={() => handleTargetTypeChange('product')}
-                                        className="ml-2"
+                                        className="ml-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                                     />
-                                    <span>منتج</span>
+                                    <div className="flex items-center">
+                                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center ml-3">
+                                            <ShoppingBag className="h-4 w-4 text-blue-600" />
+                                        </div>
+                                        <div>
+                                            <span className="font-medium text-gray-900">منتج</span>
+                                            <p className="text-sm text-gray-500">عرض البانر لمنتج محدد</p>
+                                        </div>
+                                    </div>
                                 </label>
                                 {selectedTargetType === 'product' && (
                                     <div ref={dropdownRefs.product} className="mt-2 relative">
@@ -444,17 +463,25 @@ export default function BannerForm({ bannerId }: BannerFormProps) {
                             </div>
 
                             {/* Category Selection */}
-                            <div>
-                                <label className="flex items-center">
+                            <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-blue-300 transition-colors">
+                                <label className="flex items-center cursor-pointer">
                                     <input
                                         type="radio"
                                         name="targetType"
                                         value="category"
                                         checked={selectedTargetType === 'category'}
                                         onChange={() => handleTargetTypeChange('category')}
-                                        className="ml-2"
+                                        className="ml-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                                     />
-                                    <span>صنف</span>
+                                    <div className="flex items-center">
+                                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center ml-3">
+                                            <Package className="h-4 w-4 text-green-600" />
+                                        </div>
+                                        <div>
+                                            <span className="font-medium text-gray-900">صنف</span>
+                                            <p className="text-sm text-gray-500">عرض البانر لصنف محدد</p>
+                                        </div>
+                                    </div>
                                 </label>
                                 {selectedTargetType === 'category' && (
                                     <div ref={dropdownRefs.category} className="mt-2 relative">
@@ -520,17 +547,25 @@ export default function BannerForm({ bannerId }: BannerFormProps) {
                             </div>
 
                             {/* SubCategory Selection */}
-                            <div>
-                                <label className="flex items-center">
+                            <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-blue-300 transition-colors">
+                                <label className="flex items-center cursor-pointer">
                                     <input
                                         type="radio"
                                         name="targetType"
                                         value="subcategory"
                                         checked={selectedTargetType === 'subcategory'}
                                         onChange={() => handleTargetTypeChange('subcategory')}
-                                        className="ml-2"
+                                        className="ml-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                                     />
-                                    <span>صنف فرعي</span>
+                                    <div className="flex items-center">
+                                        <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center ml-3">
+                                            <Tag className="h-4 w-4 text-purple-600" />
+                                        </div>
+                                        <div>
+                                            <span className="font-medium text-gray-900">صنف فرعي</span>
+                                            <p className="text-sm text-gray-500">عرض البانر لصنف فرعي محدد</p>
+                                        </div>
+                                    </div>
                                 </label>
                                 {selectedTargetType === 'subcategory' && (
                                     <div ref={dropdownRefs.subcategory} className="mt-2 relative">
@@ -598,61 +633,83 @@ export default function BannerForm({ bannerId }: BannerFormProps) {
                     </div>
 
                     {/* Sort Order */}
-                    <div>
-                        <label htmlFor="sortOrder" className="form-label">
+                    <div className="bg-white rounded-lg p-6 border border-gray-200">
+                        <label htmlFor="sortOrder" className="form-label text-lg font-semibold text-gray-800">
                             ترتيب العرض
                         </label>
-                        <input
-                            type="number"
-                            id="sortOrder"
-                            name="sortOrder"
-                            value={formData.sortOrder}
-                            onChange={handleInputChange}
-                            min="0"
-                            className="input-field"
-                        />
-                        <p className="text-sm text-gray-500 mt-1">
+                        <div className="mt-2">
+                            <input
+                                type="number"
+                                id="sortOrder"
+                                name="sortOrder"
+                                value={formData.sortOrder}
+                                onChange={handleInputChange}
+                                min="0"
+                                className="input-field text-center text-lg font-medium"
+                            />
+                        </div>
+                        <p className="text-sm text-gray-500 mt-2 flex items-center">
+                            <span className="w-2 h-2 bg-blue-500 rounded-full ml-2"></span>
                             البانرات ذات الترتيب الأقل تظهر أولاً
                         </p>
                     </div>
 
                     {/* Active Status */}
-                    <div className="lg:col-span-2">
-                        <label className="flex items-center">
+                    <div className="bg-white rounded-lg p-6 border border-gray-200">
+                        <label className="flex items-center cursor-pointer">
                             <input
                                 type="checkbox"
                                 name="isActive"
                                 checked={formData.isActive}
                                 onChange={handleInputChange}
-                                className="ml-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                className="ml-3 h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                             />
-                            <span className="text-sm font-medium text-gray-700">
-                                البانر نشط
-                            </span>
+                            <div className="flex items-center">
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ml-3 ${formData.isActive ? 'bg-green-100' : 'bg-gray-100'}`}>
+                                    <div className={`w-3 h-3 rounded-full ${formData.isActive ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                                </div>
+                                <div>
+                                    <span className="text-lg font-medium text-gray-900">
+                                        البانر نشط
+                                    </span>
+                                    <p className="text-sm text-gray-500">
+                                        البانرات غير النشطة لن تظهر في الموقع
+                                    </p>
+                                </div>
+                            </div>
                         </label>
-                        <p className="text-sm text-gray-500 mt-1">
-                            البانرات غير النشطة لن تظهر في الموقع
-                        </p>
                     </div>
                 </div>
 
                 {/* Form Actions */}
-                <div className="flex justify-end space-x-3 space-x-reverse pt-6 border-t">
-                    <button
-                        type="button"
-                        onClick={() => router.back()}
-                        className="btn-secondary"
-                        disabled={isSubmitting}
-                    >
-                        إلغاء
-                    </button>
-                    <button
-                        type="submit"
-                        className="btn-primary"
-                        disabled={isSubmitting || (!imageFile && !imagePreview)}
-                    >
-                        {isSubmitting ? 'جاري الحفظ...' : (isEditing ? 'تحديث البانر' : 'إنشاء البانر')}
-                    </button>
+                <div className="bg-gray-50 rounded-lg p-6 border-t border-gray-200">
+                    <div className="flex justify-end space-x-4 space-x-reverse">
+                        <button
+                            type="button"
+                            onClick={() => router.back()}
+                            className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition-colors"
+                            disabled={isSubmitting}
+                        >
+                            إلغاء
+                        </button>
+                        <button
+                            type="submit"
+                            className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2 space-x-reverse"
+                            disabled={isSubmitting || (!imageFile && !imagePreview)}
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                    <span>جاري الحفظ...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <span>{isEditing ? 'تحديث البانر' : 'إنشاء البانر'}</span>
+                                    <ImageIcon className="h-4 w-4" />
+                                </>
+                            )}
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>

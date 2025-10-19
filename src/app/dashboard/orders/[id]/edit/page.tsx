@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { Edit, ArrowLeft, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 import OrderForm from '@/components/orders/OrderForm';
 import { useOrder, useUpdateOrder, UpdateOrderData } from '@/hooks/useOrders';
+import { OrderStatus } from '@/types';
 
 interface EditOrderPageProps {
     params: {
@@ -63,7 +64,7 @@ export default function EditOrderPage({ params }: EditOrderPageProps) {
     }
 
     // Check if order can be edited
-    const canEdit = order.status === 'PENDING' || order.status === 'PROCESSING';
+    const canEdit = order.status === OrderStatus.PENDING || order.status === OrderStatus.PROCESSING;
 
     if (!canEdit) {
         return (

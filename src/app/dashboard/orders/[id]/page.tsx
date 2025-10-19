@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { useOrder, useUpdateOrderStatus, useDeleteOrder, useUpdateOrder, OrderStats } from '@/hooks/useOrders';
 import Modal from '@/components/ui/Modal';
+import OrderLocationMap from '@/components/ui/OrderLocationMap';
 import { formatDate } from '@/utils/hepler';
 import { OrderStatus } from '@/types';
 
@@ -304,11 +305,8 @@ export default function OrderDetailsPage({ params }: OrderDetailsPageProps) {
                                                 <p className="text-sm text-gray-500">البريد الإلكتروني</p>
                                                 <p className="font-medium text-gray-900">
                                                     {order.user
-                                                        ? order.user.email
-                                                        : (typeof order.userId === 'object'
-                                                            ? order.userId.email
-                                                            : 'غير محدد'
-                                                        )
+                                                        ? order.user.phoneNumber
+                                                        : '-'
                                                     }
                                                 </p>
                                             </div>
@@ -530,6 +528,28 @@ export default function OrderDetailsPage({ params }: OrderDetailsPageProps) {
                             </button>
                         </div>
                     </div>
+
+                    {/* Order Location Map */}
+                    {order.location ? (
+                        <OrderLocationMap
+                            location={order.location}
+                            orderNumber={order.orderNumber}
+                            className="w-full"
+                        />
+                    ) : (
+                        <div className="card">
+                            <div className="flex items-center space-x-3 space-x-reverse mb-4">
+                                <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                                    <MapPin className="h-5 w-5 text-gray-400" />
+                                </div>
+                                <h3 className="text-lg font-semibold text-gray-900">موقع الطلب</h3>
+                            </div>
+                            <div className="text-center py-8">
+                                <MapPin className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                                <p className="text-gray-500">لا يوجد موقع محدد لهذا الطلب</p>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
