@@ -8,7 +8,7 @@ export const useSubCategories = (params: SubCategoryQueryParams = {}) => {
         queryKey: ['sub-categories', params],
         queryFn: async () => {
             const response = await apiService.getSubCategories(params);
-            return response;
+            return response.data;
         },
         staleTime: 5 * 60 * 1000, // 5 minutes
     });

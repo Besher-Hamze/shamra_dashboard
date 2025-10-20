@@ -427,7 +427,7 @@ class ApiService {
     }
 
     // Sub-Categories endpoints
-    async getSubCategories(params?: any): Promise<SubCategory[]> {
+    async getSubCategories(params?: any): Promise<ApiResponse<SubCategory[]>> {
         return this.api.get('/sub-categories', { params });
     }
 
