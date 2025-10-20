@@ -10,8 +10,6 @@ export default function SettingsPage() {
 
     const [formData, setFormData] = useState<PointsSettings>({
         points_rate_usd: 10,
-        points_rate_syp: 10,
-        points_rate_try: 10,
         points_discount_rate: 1,
         points_max_discount_percent: 50,
     });
@@ -140,49 +138,10 @@ export default function SettingsPage() {
                             </p>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                💰 النقاط لكل 100,000 ليرة سورية
-                            </label>
-                            <div className="relative">
-                                <input
-                                    type="number"
-                                    min="0"
-                                    value={formData.points_rate_syp}
-                                    onChange={(e) => handleInputChange('points_rate_syp', Number(e.target.value))}
-                                    className="input-field pl-8"
-                                />
-                                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                                    <Coins className="h-4 w-4" />
-                                </div>
-                            </div>
-                            <p className="text-xs text-gray-500 mt-1">
-                                كل 100,000 ل.س = {formData.points_rate_syp} نقاط
-                            </p>
-                        </div>
+                        {/* Removed SYP rate */}
                     </div>
 
-                    {/* TRY Points Rate */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            🇹🇷 النقاط لكل 1,000 ليرة تركية
-                        </label>
-                        <div className="relative max-w-md">
-                            <input
-                                type="number"
-                                min="0"
-                                value={formData.points_rate_try}
-                                onChange={(e) => handleInputChange('points_rate_try', Number(e.target.value))}
-                                className="input-field pl-8"
-                            />
-                            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                                <Coins className="h-4 w-4" />
-                            </div>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1">
-                            كل 1,000 ₺ = {formData.points_rate_try} نقاط
-                        </p>
-                    </div>
+                    {/* Removed TRY rate */}
                 </div>
             </div>
 
@@ -256,9 +215,7 @@ export default function SettingsPage() {
                     <div className="bg-white rounded-lg p-4 border border-blue-100">
                         <div className="font-medium text-gray-900">معدل كسب النقاط</div>
                         <div className="text-gray-600 mt-1">
-                            USD: {formData.points_rate_usd} نقاط/100$<br />
-                            SYP: {formData.points_rate_syp} نقاط/100K ل.س<br />
-                            TRY: {formData.points_rate_try} نقاط/1K ₺
+                            USD: {formData.points_rate_usd} نقاط/100$
                         </div>
                     </div>
                     <div className="bg-white rounded-lg p-4 border border-blue-100">

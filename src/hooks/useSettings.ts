@@ -18,8 +18,6 @@ export interface Setting {
 
 export interface PointsSettings {
     points_rate_usd: number;
-    points_rate_syp: number;
-    points_rate_try: number;
     points_discount_rate: number;
     points_max_discount_percent: number;
 }
@@ -49,8 +47,6 @@ export const usePointsSettings = () => {
             // Filter and format points-related settings
             const pointsSettings: PointsSettings = {
                 points_rate_usd: settings.find((s: Setting) => s.key === 'points_rate_usd')?.value || 10,
-                points_rate_syp: settings.find((s: Setting) => s.key === 'points_rate_syp')?.value || 10,
-                points_rate_try: settings.find((s: Setting) => s.key === 'points_rate_try')?.value || 10,
                 points_discount_rate: settings.find((s: Setting) => s.key === 'points_discount_rate')?.value || 1,
                 points_max_discount_percent: settings.find((s: Setting) => s.key === 'points_max_discount_percent')?.value || 50,
             };

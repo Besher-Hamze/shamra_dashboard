@@ -5,7 +5,7 @@ function getImageUrl(imageUrl?: string) {
 
 }
 
-const formatPrice = (price: number, currency: string = 'SYP') => {
+const formatPrice = (price: number, currency: string = 'USD') => {
     const currencyMap: { [key: string]: string } = {
         'SYP': 'ل.س',
         'USD': '$',

@@ -66,7 +66,10 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
                 categoryId: product.categoryId || '',
                 subCategoryId: product.subCategoryId || '',
                 branches: product.branches?.map((b: any) => typeof b === 'string' ? b : b.id) || [],
-                branchPricing: product.branchPricing || [],
+                branchPricing: (product.branchPricing || []).map((p) => ({
+                    ...p,
+                    currency: 'USD'
+                })),
                 brand: product.brand || '',
                 specifications: product.specifications || {},
                 status: product.status || ProductStatus.ACTIVE,
@@ -649,15 +652,12 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
 
                                             <div className="form-group">
                                                 <label className="form-label">العملة</label>
-                                                <select
-                                                    value={branchPricing.currency}
-                                                    onChange={(e) => handleBranchPricingChange(branchId, 'currency', e.target.value)}
-                                                    className="select-field"
-                                                >
-                                                    <option value="SYP">ليرة سورية (SYP)</option>
-                                                    <option value="USD">دولار أمريكي (USD)</option>
-                                                    <option value="EUR">يورو (EUR)</option>
-                                                </select>
+                                                <input
+                                                    type="text"
+                                                    className="input-field"
+                                                    value="USD"
+                                                    disabled
+                                                />
                                             </div>
 
                                             <div className="form-group">

@@ -27,7 +27,7 @@ export interface InventoryItem {
     reorderPoint?: number;
     reorderQuantity?: number;
     unitCost: number;
-    currency: string;
+    currency: 'USD';
     unit: string;
     isLowStock?: boolean;
     isOutOfStock?: boolean;
