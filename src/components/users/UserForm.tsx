@@ -1,8 +1,9 @@
 'use client';
 
-import { User } from '@/types';
+import { User, UserRole, UpdateUserData, Branch } from '@/types';
 import { X, Eye, EyeOff } from 'lucide-react';
 import { useUserForm } from '@/hooks';
+import { useBranches } from '@/hooks/useBranches';
 
 interface UserFormProps {
     user?: User | null;
@@ -24,26 +25,29 @@ export default function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
         mutations,
     } = useUserForm(user);
 
+    // Fetch branches for dropdown
+    const { data: branchesData } = useBranches({ limit: 100 });
+    const branches = branchesData?.data || [];
+
     // Handle form submission with success callback
     const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!validateForm()) {
-            return;
+        // In edit mode, we only need to validate role (other fields are read-only)
+        if (user) {
+            // Just proceed with role update, no validation needed for read-only fields
+        } else {
+            // In create mode, validate all fields
+            if (!validateForm()) {
+                return;
+            }
         }
 
         try {
             if (user) {
-                // Update existing user
-                const updateData = {
-                    firstName: formData.firstName,
-                    lastName: formData.lastName,
-                    email: formData.email,
-                    phoneNumber: formData.phoneNumber,
-                    profileImage: formData.profileImage,
-                    branchId: formData.branchId,
-                    isActive: formData.isActive,
-                    ...(formData.password && { password: formData.password }),
+                // Update existing user - only role can be changed
+                const updateData: UpdateUserData = {
+                    role: formData.role, // Only role is editable in edit mode
                 };
 
                 await mutations.updateUser.mutateAsync({
@@ -59,23 +63,6 @@ export default function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
             if (error.response?.data?.message) {
                 setErrors({ general: error.response.data.message });
             }
-        }
-    };
-
-    const getRoleLabel = (role: string) => {
-        switch (role) {
-            case 'ADMIN':
-                return 'مدير';
-            case 'MANAGER':
-                return 'مشرف';
-            case 'EMPLOYEE':
-                return 'موظف';
-            case 'MERCHANT':
-                return 'تاجر';
-            case 'CUSTOMER':
-                return 'عميل';
-            default:
-                return role;
         }
     };
 
@@ -99,8 +86,10 @@ export default function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
                         name="firstName"
                         value={formData.firstName}
                         onChange={handleInputChange}
+                        disabled={!!user}
+                        readOnly={!!user}
                         className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.firstName ? 'border-red-300' : 'border-gray-300'
-                            }`}
+                            } ${user ? 'bg-gray-50 text-gray-600 cursor-not-allowed' : ''}`}
                         placeholder="أدخل الاسم الأول"
                     />
                     {errors.firstName && (
@@ -119,8 +108,10 @@ export default function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
                         name="lastName"
                         value={formData.lastName}
                         onChange={handleInputChange}
+                        disabled={!!user}
+                        readOnly={!!user}
                         className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.lastName ? 'border-red-300' : 'border-gray-300'
-                            }`}
+                            } ${user ? 'bg-gray-50 text-gray-600 cursor-not-allowed' : ''}`}
                         placeholder="أدخل الاسم الأخير"
                     />
                     {errors.lastName && (
@@ -128,25 +119,6 @@ export default function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
                     )}
                 </div>
 
-                {/* Email */}
-                <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                        البريد الإلكتروني *
-                    </label>
-                    <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.email ? 'border-red-300' : 'border-gray-300'
-                            }`}
-                        placeholder="أدخل البريد الإلكتروني"
-                    />
-                    {errors.email && (
-                        <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-                    )}
-                </div>
 
                 {/* Phone Number */}
                 <div>
@@ -159,8 +131,10 @@ export default function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
                         name="phoneNumber"
                         value={formData.phoneNumber}
                         onChange={handleInputChange}
+                        disabled={!!user}
+                        readOnly={!!user}
                         className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.phoneNumber ? 'border-red-300' : 'border-gray-300'
-                            }`}
+                            } ${user ? 'bg-gray-50 text-gray-600 cursor-not-allowed' : ''}`}
                         placeholder="أدخل رقم الهاتف"
                     />
                     {errors.phoneNumber && (
@@ -169,84 +143,80 @@ export default function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
                 </div>
 
                 {/* Password */}
-                <div>
-                    <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                        كلمة المرور {!user && '*'}
-                    </label>
-                    <div className="relative">
-                        <input
-                            type={showPassword ? 'text' : 'password'}
-                            id="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleInputChange}
-                            className={`w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.password ? 'border-red-300' : 'border-gray-300'
-                                }`}
-                            placeholder={user ? 'اترك فارغاً للحفاظ على كلمة المرور الحالية' : 'أدخل كلمة المرور'}
-                        />
-                        <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                        >
-                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                        </button>
+                {!user && (
+                    <div>
+                        <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                            كلمة المرور *
+                        </label>
+                        <div className="relative">
+                            <input
+                                type={showPassword ? 'text' : 'password'}
+                                id="password"
+                                name="password"
+                                value={formData.password}
+                                onChange={handleInputChange}
+                                className={`w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.password ? 'border-red-300' : 'border-gray-300'
+                                    }`}
+                                placeholder="أدخل كلمة المرور"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            >
+                                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                            </button>
+                        </div>
+                        {errors.password && (
+                            <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+                        )}
                     </div>
-                    {errors.password && (
-                        <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-                    )}
-                </div>
+                )}
 
-                {/* Role */}
-                <div>
-                    <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
-                        الدور
-                    </label>
-                    <select
-                        id="role"
-                        name="role"
-                        value={formData.role}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                        <option value="EMPLOYEE">موظف</option>
-                        <option value="MANAGER">مشرف</option>
-                        <option value="ADMIN">مدير</option>
-                        <option value="CUSTOMER">عميل</option>
-                        <option value="MERCHANT">تاجر</option>
-                    </select>
-                </div>
+                {/* Role - Only show in edit mode */}
+                {user && (
+                    <div>
+                        <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
+                            الدور
+                        </label>
+                        <select
+                            id="role"
+                            name="role"
+                            value={formData.role}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                            <option value={UserRole.EMPLOYEE}>موظف</option>
+                            <option value={UserRole.MANAGER}>مشرف</option>
+                            <option value={UserRole.ADMIN}>مدير</option>
+                            <option value={UserRole.CUSTOMER}>عميل</option>
+                            <option value={UserRole.MERCHANT}>تاجر</option>
+                        </select>
+                    </div>
+                )}
 
-                {/* Profile Image */}
-                <div className="md:col-span-2">
-                    <label htmlFor="profileImage" className="block text-sm font-medium text-gray-700 mb-2">
-                        صورة الملف الشخصي
-                    </label>
-                    <input
-                        type="url"
-                        id="profileImage"
-                        name="profileImage"
-                        value={formData.profileImage}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="أدخل رابط الصورة"
-                    />
-                </div>
+              
 
-                {/* Branch ID */}
+                {/* Branch Selection */}
                 <div className="md:col-span-2">
                     <label htmlFor="branchId" className="block text-sm font-medium text-gray-700 mb-2">
-                        معرف الفرع
+                        الفرع
                     </label>
-                    <input
-                        type="text"
+                    <select
                         id="branchId"
                         name="branchId"
-                        value={formData.branchId}
+                        value={formData.branchId || ''}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="أدخل معرف الفرع"
-                    />
+                        disabled={!!user}
+                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${user ? 'bg-gray-50 text-gray-600 cursor-not-allowed' : ''}`}
+                    >
+                        <option value="">اختر الفرع (اختياري)</option>
+                        {branches.map((branch: Branch) => (
+                            <option key={branch.id} value={branch.id}>
+                                {branch.name}
+                            </option>
+                        ))}
+                    </select>
                 </div>
 
                 {/* Active Status */}
@@ -258,9 +228,10 @@ export default function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
                             name="isActive"
                             checked={formData.isActive}
                             onChange={handleInputChange}
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            disabled={!!user}
+                            className={`h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded ${user ? 'cursor-not-allowed opacity-50' : ''}`}
                         />
-                        <label htmlFor="isActive" className="mr-2 block text-sm text-gray-900">
+                        <label htmlFor="isActive" className={`mr-2 block text-sm ${user ? 'text-gray-500' : 'text-gray-900'}`}>
                             المستخدم نشط
                         </label>
                     </div>

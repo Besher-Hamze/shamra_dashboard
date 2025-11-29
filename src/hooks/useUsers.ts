@@ -510,6 +510,7 @@ export function useUserForm(user?: User | null) {
                     profileImage: formData.profileImage,
                     branchId: formData.branchId,
                     isActive: formData.isActive,
+                    role: formData.role, // Include role in update
                 };
 
                 // Only include password if it's provided

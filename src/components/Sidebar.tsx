@@ -21,28 +21,30 @@ import {
   Store
 } from 'lucide-react';
 import { AuthService } from '@/lib/auth';
+import { UserRole } from '@/types';
 
 interface SidebarItem {
   name: string;
   href: string;
   icon: React.ComponentType<any>;
   badge?: number;
+  roles?: UserRole[]; // Array of roles that can see this item
 }
 
 const navigation: SidebarItem[] = [
   // { name: 'الرئيسية', href: '/dashboard', icon: Home },
-  { name: 'التقارير', href: '/dashboard/reports', icon: BarChart3 },
-  { name: 'الفروع', href: '/dashboard/branches', icon: Building2 },
-  { name: "الاصناف", href: "/dashboard/categories", icon: Package },
-  { name: 'المنتجات', href: '/dashboard/products', icon: ShoppingBag },
-  { name: 'المستخدمين', href: '/dashboard/users', icon: Users },
-  { name: 'الطلبات', href: '/dashboard/orders', icon: ShoppingCart },
-  { name: 'البانرات', href: '/dashboard/banners', icon: Image },
-  { name: 'طلبات التجار', href: '/dashboard/merchants', icon: Store },
+  { name: 'التقارير', href: '/dashboard/reports', icon: BarChart3, roles: [UserRole.ADMIN] },
+  { name: 'الفروع', href: '/dashboard/branches', icon: Building2, roles: [UserRole.ADMIN, UserRole.MANAGER] },
+  { name: "الاصناف", href: "/dashboard/categories", icon: Package, roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.EMPLOYEE] },
+  { name: 'المنتجات', href: '/dashboard/products', icon: ShoppingBag, roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.EMPLOYEE] },
+  { name: 'المستخدمين', href: '/dashboard/users', icon: Users, roles: [UserRole.ADMIN, UserRole.MANAGER] },
+  { name: 'الطلبات', href: '/dashboard/orders', icon: ShoppingCart, roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.EMPLOYEE] },
+  { name: 'البانرات', href: '/dashboard/banners', icon: Image, roles: [UserRole.ADMIN, UserRole.MANAGER] },
+  { name: 'طلبات التجار', href: '/dashboard/merchants', icon: Store, roles: [UserRole.ADMIN, UserRole.MANAGER] },
   // { name: 'العملاء', href: '/dashboard/customers', icon: Users },
-  { name: 'المخزون', href: '/dashboard/inventory', icon: Package },
-  { name: 'الإشعارات', href: '/dashboard/notifications', icon: Bell },
-  { name: 'الإعدادات', href: '/dashboard/settings', icon: Settings },
+  { name: 'المخزون', href: '/dashboard/inventory', icon: Package, roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.EMPLOYEE] },
+  { name: 'الإشعارات', href: '/dashboard/notifications', icon: Bell, roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.EMPLOYEE] },
+  { name: 'الإعدادات', href: '/dashboard/settings', icon: Settings, roles: [UserRole.ADMIN] },
 
 ];
 
@@ -55,6 +57,18 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const user = AuthService.getUser();
+
+  // Filter navigation items based on user role
+  const filteredNavigation = navigation.filter((item) => {
+    // If no roles specified, show to everyone
+    if (!item.roles || item.roles.length === 0) {
+      return true;
+    }
+    // Check if user's role is in the allowed roles
+    // Handle both uppercase string format ('ADMIN') and enum format ('admin')
+    const userRole = user?.role?.toUpperCase() || '';
+    return item.roles.some((role) => role.toUpperCase() === userRole);
+  });
 
   const handleLogout = async () => {
     try {
@@ -125,7 +139,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
         {/* Navigation */}
         <nav className="mt-5 px-3 flex-1 overflow-y-auto">
           <div className="space-y-1 pb-4">
-            {navigation.map((item) => {
+            {filteredNavigation.map((item) => {
               const isActive = pathname === item.href;
               return (
                 <Link

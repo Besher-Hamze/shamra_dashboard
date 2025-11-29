@@ -72,6 +72,7 @@ export interface UpdateUserData {
     profileImage?: string;
     branchId?: string;
     isActive?: boolean;
+    role?: UserRole;
 }
 
 export interface ChangePasswordData {
