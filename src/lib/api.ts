@@ -22,6 +22,10 @@ import type {
     CreateSubCategoryData,
     UpdateSubCategoryData,
     SubCategoryQueryParams,
+    SubSubCategory,
+    CreateSubSubCategoryData,
+    UpdateSubSubCategoryData,
+    SubSubCategoryQueryParams,
     Branch,
     InventoryItem,
     InventoryQueryParams,
@@ -485,6 +489,64 @@ class ApiService {
 
     async deleteSubCategory(id: string): Promise<AxiosResponse<ApiResponse<null>>> {
         return this.api.delete(`/sub-categories/${id}`);
+    }
+
+    // SubSubCategories endpoints
+    async getSubSubCategories(params?: any): Promise<ApiResponse<SubSubCategory[]>> {
+        return this.api.get('/sub-sub-categories', { params });
+    }
+
+    async getSubSubCategory(id: string): Promise<AxiosResponse<ApiResponse<SubSubCategory>>> {
+        return this.api.get(`/sub-sub-categories/${id}`);
+    }
+
+    async getSubSubCategoriesBySubCategory(subCategoryId: string): Promise<AxiosResponse<SubSubCategory[]>> {
+        return this.api.get(`/sub-sub-categories/sub-category/${subCategoryId}`);
+    }
+
+    async createSubSubCategory(data: CreateSubSubCategoryData): Promise<AxiosResponse<ApiResponse<SubSubCategory>>> {
+        return this.api.post('/sub-sub-categories', data);
+    }
+
+    async createSubSubCategoryWithImage(data: CreateSubSubCategoryData, imageFile?: File): Promise<AxiosResponse<ApiResponse<SubSubCategory>>> {
+        const formData = new FormData();
+        formData.append('name', data.name);
+        formData.append('subCategoryId', data.subCategoryId);
+        if (data.isActive !== undefined) formData.append('isActive', String(data.isActive));
+        if (imageFile) {
+            formData.append('image', imageFile);
+        }
+        return this.api.post('/sub-sub-categories', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+    }
+
+    async updateSubSubCategory(id: string, data: UpdateSubSubCategoryData): Promise<AxiosResponse<ApiResponse<SubSubCategory>>> {
+        return this.api.patch(`/sub-sub-categories/${id}`, data);
+    }
+
+    async updateSubSubCategoryWithImage(id: string, data: UpdateSubSubCategoryData, imageFile?: File): Promise<AxiosResponse<ApiResponse<SubSubCategory>>> {
+        const formData = new FormData();
+        if (data.name) formData.append('name', data.name);
+        if (data.subCategoryId) formData.append('subCategoryId', data.subCategoryId);
+        if (data.isActive !== undefined) formData.append('isActive', String(data.isActive));
+        if (imageFile) {
+            formData.append('image', imageFile);
+        } else if (data.image) {
+            formData.append('image', data.image);
+        }
+
+        return this.api.patch(`/sub-sub-categories/${id}`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+    }
+
+    async deleteSubSubCategory(id: string): Promise<AxiosResponse<ApiResponse<null>>> {
+        return this.api.delete(`/sub-sub-categories/${id}`);
     }
 
     // Branches endpoints

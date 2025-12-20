@@ -42,6 +42,17 @@ export {
 } from './useSubCategories';
 
 export {
+    useSubSubCategories,
+    useSubSubCategory,
+    useSubSubCategoriesBySubCategory,
+    useCreateSubSubCategory,
+    useCreateSubSubCategoryWithImage,
+    useUpdateSubSubCategory,
+    useUpdateSubSubCategoryWithImage,
+    useDeleteSubSubCategory,
+} from './useSubSubCategories';
+
+export {
     useMerchantRequests,
     useMerchantRequest,
     useMyMerchantRequest,

@@ -174,6 +174,36 @@ export interface SubCategoryQueryParams extends BaseQueryParams {
     search?: string;
 }
 
+// SubSubCategory types
+export interface SubSubCategory {
+    id: string;
+    name: string;
+    subCategoryId: string;
+    image?: string;
+    subCategory?: SubCategory;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface CreateSubSubCategoryData {
+    name: string;
+    subCategoryId: string;
+    image?: string;
+    isActive?: boolean;
+}
+
+export interface UpdateSubSubCategoryData extends Partial<CreateSubSubCategoryData> {
+    id: string;
+}
+
+export interface SubSubCategoryQueryParams extends BaseQueryParams {
+    name?: string;
+    subCategoryId?: string;
+    isActive?: boolean;
+    search?: string;
+}
+
 // Product types
 
 export enum ProductStatus {

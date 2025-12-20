@@ -16,12 +16,14 @@ import {
 } from 'lucide-react';
 import { useCategories, useDeleteCategory } from '@/hooks/useCategories';
 import { useCreateSubCategory, useUpdateSubCategory, useDeleteSubCategory, useSubCategories, useCreateSubCategoryWithImage, useUpdateSubCategoryWithImage } from '@/hooks/useSubCategories';
+import { useCreateSubSubCategory, useUpdateSubSubCategory, useDeleteSubSubCategory, useSubSubCategories, useCreateSubSubCategoryWithImage, useUpdateSubSubCategoryWithImage } from '@/hooks/useSubSubCategories';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table';
 import Pagination from '@/components/ui/Pagination';
 import Modal from '@/components/ui/Modal';
 import CategoryForm from '@/components/categories/CategoryForm';
 import SubCategoryForm from '@/components/categories/SubCategoryForm';
-import { Category, SubCategory, SubCategoryType } from '@/types';
+import SubSubCategoryForm from '@/components/categories/SubSubCategoryForm';
+import { Category, SubCategory, SubSubCategory, SubCategoryType } from '@/types';
 import { getImageUrl, formatDate } from '@/utils/hepler';
 
 export default function CategoriesPage() {
@@ -41,6 +43,14 @@ export default function CategoriesPage() {
     const [selectedSubCategory, setSelectedSubCategory] = useState<SubCategory | null>(null);
     const [isDeleteSubModalOpen, setIsDeleteSubModalOpen] = useState(false);
     const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+    
+    // Sub-sub-category states
+    const [selectedSubCategoryForSubSubs, setSelectedSubCategoryForSubSubs] = useState<SubCategory | null>(null);
+    const [expandedSubCategories, setExpandedSubCategories] = useState<Set<string>>(new Set());
+    const [isCreateSubSubModalOpen, setIsCreateSubSubModalOpen] = useState(false);
+    const [isEditSubSubModalOpen, setIsEditSubSubModalOpen] = useState(false);
+    const [selectedSubSubCategory, setSelectedSubSubCategory] = useState<SubSubCategory | null>(null);
+    const [isDeleteSubSubModalOpen, setIsDeleteSubSubModalOpen] = useState(false);
 
     const queryParams = {
         page: currentPage,
@@ -59,6 +69,14 @@ export default function CategoriesPage() {
     const createSubCategoryWithImageMutation = useCreateSubCategoryWithImage();
     const updateSubCategoryWithImageMutation = useUpdateSubCategoryWithImage();
     const deleteSubCategoryMutation = useDeleteSubCategory();
+
+    // Sub-sub-category hooks
+    const { data: subSubCategoriesData } = useSubSubCategories();
+    const createSubSubCategoryMutation = useCreateSubSubCategory();
+    const updateSubSubCategoryMutation = useUpdateSubSubCategory();
+    const createSubSubCategoryWithImageMutation = useCreateSubSubCategoryWithImage();
+    const updateSubSubCategoryWithImageMutation = useUpdateSubSubCategoryWithImage();
+    const deleteSubSubCategoryMutation = useDeleteSubSubCategory();
 
     // Toggle sub-categories visibility
     const toggleSubCategories = (category: Category) => {
@@ -148,6 +166,77 @@ export default function CategoriesPage() {
                 onSuccess: () => {
                     setIsDeleteSubModalOpen(false);
                     setSelectedSubCategory(null);
+                },
+            });
+        }
+    };
+
+    // Sub-sub-category handlers
+    const toggleSubSubCategories = (subCategory: SubCategory) => {
+        const newExpanded = new Set(expandedSubCategories);
+        if (newExpanded.has(subCategory.id)) {
+            newExpanded.delete(subCategory.id);
+            if (selectedSubCategoryForSubSubs?.id === subCategory.id) {
+                setSelectedSubCategoryForSubSubs(null);
+            }
+        } else {
+            newExpanded.add(subCategory.id);
+            setSelectedSubCategoryForSubSubs(subCategory);
+        }
+        setExpandedSubCategories(newExpanded);
+    };
+
+    const handleCreateSubSubCategory = async (data: Record<string, unknown>, imageFile?: File) => {
+        try {
+            if (imageFile) {
+                await createSubSubCategoryWithImageMutation.mutateAsync({ data, imageFile });
+            } else {
+                await createSubSubCategoryMutation.mutateAsync(data as any);
+            }
+            setIsCreateSubSubModalOpen(false);
+            if (selectedSubCategoryForSubSubs) {
+                setExpandedSubCategories(prev => new Set(prev).add(selectedSubCategoryForSubSubs.id));
+            }
+        } catch (error) {
+            console.error('Error creating sub-sub-category:', error);
+        }
+    };
+
+    const handleEditSubSubCategory = (subSubCategory: SubSubCategory) => {
+        setSelectedSubSubCategory(subSubCategory);
+        setIsEditSubSubModalOpen(true);
+    };
+
+    const handleUpdateSubSubCategory = async (data: Record<string, unknown>, imageFile?: File) => {
+        if (!selectedSubSubCategory) return;
+        try {
+            if (imageFile) {
+                await updateSubSubCategoryWithImageMutation.mutateAsync({
+                    id: selectedSubSubCategory.id,
+                    data: { ...data, id: selectedSubSubCategory.id },
+                    imageFile
+                });
+            } else {
+                await updateSubSubCategoryMutation.mutateAsync({ ...data, id: selectedSubSubCategory.id } as any);
+            }
+            setIsEditSubSubModalOpen(false);
+            setSelectedSubSubCategory(null);
+        } catch (error) {
+            console.error('Error updating sub-sub-category:', error);
+        }
+    };
+
+    const handleDeleteSubSubCategory = (subSubCategory: SubSubCategory) => {
+        setSelectedSubSubCategory(subSubCategory);
+        setIsDeleteSubSubModalOpen(true);
+    };
+
+    const confirmDeleteSubSubCategory = () => {
+        if (selectedSubSubCategory) {
+            deleteSubSubCategoryMutation.mutate(selectedSubSubCategory.id, {
+                onSuccess: () => {
+                    setIsDeleteSubSubModalOpen(false);
+                    setSelectedSubSubCategory(null);
                 },
             });
         }
@@ -332,6 +421,27 @@ export default function CategoriesPage() {
                         <TableCell>
                             <div className="flex items-center space-x-2 space-x-reverse">
                                 <button
+                                    onClick={() => toggleSubSubCategories(subCategory)}
+                                    className="p-1 text-orange-600 hover:text-orange-800 hover:bg-orange-50 rounded"
+                                    title={expandedSubCategories.has(subCategory.id) ? 'إخفاء الفئات الفرعية' : 'عرض الفئات الفرعية'}
+                                >
+                                    {expandedSubCategories.has(subCategory.id) ? (
+                                        <Eye className="h-4 w-4" />
+                                    ) : (
+                                        <List className="h-4 w-4" />
+                                    )}
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setSelectedSubCategoryForSubSubs(subCategory);
+                                        setIsCreateSubSubModalOpen(true);
+                                    }}
+                                    className="p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded"
+                                    title="إضافة فئة فرعية"
+                                >
+                                    <Plus className="h-3 w-3" />
+                                </button>
+                                <button
                                     onClick={() => handleEditSubCategory(subCategory)}
                                     className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded"
                                     title="تعديل"
@@ -349,6 +459,74 @@ export default function CategoriesPage() {
                         </TableCell>
                     </TableRow>
                 );
+
+                // Add sub-sub-categories if expanded
+                if (expandedSubCategories.has(subCategory.id) && subSubCategoriesData && selectedSubCategoryForSubSubs?.id === subCategory.id) {
+                    subSubCategoriesData.filter(ss => ss.subCategoryId == subCategory.id).forEach(subSubCategory => {
+                        rows.push(
+                            <TableRow key={`sub-sub-${subSubCategory.id}`} className="bg-orange-25">
+                                <TableCell>
+                                    <div className="flex items-center" style={{ paddingRight: '60px' }}>
+                                        <div className="w-4 h-4 border-r border-b border-orange-300 mr-2"></div>
+                                        {subSubCategory.image && subSubCategory.image !== '' ? (
+                                            <img
+                                                src={getImageUrl(subSubCategory.image)}
+                                                alt={subSubCategory.name}
+                                                className="h-6 w-6 object-cover rounded-full mr-2 border border-orange-200"
+                                                style={{ minWidth: '24px', minHeight: '24px' }}
+                                            />
+                                        ) : (
+                                            <Tag className="h-3 w-3 text-orange-600 mr-2" />
+                                        )}
+                                        <div className="mr-3">
+                                            <div className="text-sm font-medium text-gray-900">
+                                                {subSubCategory.name}
+                                                <span className="text-xs text-orange-600 mr-2">(فئة فرعية فرعية)</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <span className="text-sm text-gray-500">-</span>
+                                </TableCell>
+                                <TableCell>
+                                    <span className="text-sm text-gray-500">-</span>
+                                </TableCell>
+                                <TableCell>
+                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${subSubCategory.isActive
+                                        ? 'bg-green-100 text-green-800'
+                                        : 'bg-gray-100 text-gray-800'
+                                        }`}>
+                                        {subSubCategory.isActive ? 'نشط' : 'غير نشط'}
+                                    </span>
+                                </TableCell>
+                                <TableCell>
+                                    <span className="text-sm text-gray-500">
+                                        {formatDate(new Date(subSubCategory.createdAt))}
+                                    </span>
+                                </TableCell>
+                                <TableCell>
+                                    <div className="flex items-center space-x-2 space-x-reverse">
+                                        <button
+                                            onClick={() => handleEditSubSubCategory(subSubCategory)}
+                                            className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded"
+                                            title="تعديل"
+                                        >
+                                            <Edit className="h-4 w-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteSubSubCategory(subSubCategory)}
+                                            className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded"
+                                            title="حذف"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        );
+                    });
+                }
             });
         }
 
@@ -690,6 +868,86 @@ export default function CategoriesPage() {
                             className="btn-danger"
                         >
                             {deleteSubCategoryMutation.isPending ? 'جاري الحذف...' : 'حذف'}
+                        </button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Create Sub-Sub-Category Modal */}
+            {isCreateSubSubModalOpen && selectedSubCategoryForSubSubs && (
+                <Modal
+                    isOpen={isCreateSubSubModalOpen}
+                    onClose={() => setIsCreateSubSubModalOpen(false)}
+                    title="إضافة فئة فرعية فرعية"
+                    size="lg"
+                >
+                    <SubSubCategoryForm
+                        subCategoryId={selectedSubCategoryForSubSubs.id}
+                        onSubmit={handleCreateSubSubCategory}
+                        onCancel={() => setIsCreateSubSubModalOpen(false)}
+                        isLoading={createSubSubCategoryMutation.isPending || createSubSubCategoryWithImageMutation.isPending}
+                        error={createSubSubCategoryMutation.error || createSubSubCategoryWithImageMutation.error}
+                    />
+                </Modal>
+            )}
+
+            {/* Edit Sub-Sub-Category Modal */}
+            {isEditSubSubModalOpen && selectedSubSubCategory && selectedSubCategoryForSubSubs && (
+                <Modal
+                    isOpen={isEditSubSubModalOpen}
+                    onClose={() => {
+                        setIsEditSubSubModalOpen(false);
+                        setSelectedSubSubCategory(null);
+                    }}
+                    title="تعديل الفئة الفرعية الفرعية"
+                    size="lg"
+                >
+                    <SubSubCategoryForm
+                        subSubCategory={selectedSubSubCategory}
+                        subCategoryId={selectedSubCategoryForSubSubs.id}
+                        onSubmit={handleUpdateSubSubCategory}
+                        onCancel={() => {
+                            setIsEditSubSubModalOpen(false);
+                            setSelectedSubSubCategory(null);
+                        }}
+                        isLoading={updateSubSubCategoryMutation.isPending || updateSubSubCategoryWithImageMutation.isPending}
+                        error={updateSubSubCategoryMutation.error || updateSubSubCategoryWithImageMutation.error}
+                    />
+                </Modal>
+            )}
+
+            {/* Delete Sub-Sub-Category Confirmation Modal */}
+            <Modal
+                isOpen={isDeleteSubSubModalOpen}
+                onClose={() => {
+                    setIsDeleteSubSubModalOpen(false);
+                    setSelectedSubSubCategory(null);
+                }}
+                title="تأكيد حذف الفئة الفرعية الفرعية"
+            >
+                <div className="space-y-4">
+                    <p className="text-gray-600">
+                        هل أنت متأكد من حذف الفئة الفرعية الفرعية &quot;{selectedSubSubCategory?.name}&quot;؟
+                    </p>
+                    <p className="text-gray-600 text-sm">
+                        لا يمكن التراجع عن هذا الإجراء.
+                    </p>
+                    <div className="flex justify-end space-x-3 space-x-reverse">
+                        <button
+                            onClick={() => {
+                                setIsDeleteSubSubModalOpen(false);
+                                setSelectedSubSubCategory(null);
+                            }}
+                            className="btn-secondary"
+                        >
+                            إلغاء
+                        </button>
+                        <button
+                            onClick={confirmDeleteSubSubCategory}
+                            disabled={deleteSubSubCategoryMutation.isPending}
+                            className="btn-danger"
+                        >
+                            {deleteSubSubCategoryMutation.isPending ? 'جاري الحذف...' : 'حذف'}
                         </button>
                     </div>
                 </div>
