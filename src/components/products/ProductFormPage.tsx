@@ -5,8 +5,9 @@ import { Upload, X, Package, DollarSign, Tag, Settings, Image, Save, Ruler, File
 import { useCreateProduct, useUpdateProduct, useCreateProductWithImages, useUpdateProductWithImages, Product, CreateProductData } from '@/hooks/useProducts';
 import { useCategories } from '@/hooks/useCategories';
 import { useSubCategoriesByCategory } from '@/hooks/useSubCategories';
+import { useSubSubCategoriesBySubCategory } from '@/hooks/useSubSubCategories';
 import { useBranches } from '@/hooks/useBranches';
-import { Branch, Category, SubCategory, ProductStatus, SubCategoryType, BranchPricing } from '@/types';
+import { Branch, Category, SubCategory, SubSubCategory, ProductStatus, SubCategoryType, BranchPricing } from '@/types';
 import { getImageUrl } from '@/utils/hepler';
 
 interface ProductFormPageProps {
@@ -23,6 +24,7 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
         barcode: '',
         categoryId: '',
         subCategoryId: '',
+        subSubCategoryId: '',
         branches: [] as string[],
         branchPricing: [] as BranchPricing[],
         brand: '',
@@ -48,6 +50,7 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
 
     const { data: categoriesData } = useCategories();
     const { data: subCategoriesData } = useSubCategoriesByCategory(formData.categoryId);
+    const { data: subSubCategoriesData } = useSubSubCategoriesBySubCategory(formData.subCategoryId || '');
 
     // Get selected subcategory data
     const selectedSubCategory = subCategoriesData?.find(sub => sub.id === formData.subCategoryId);
@@ -65,6 +68,7 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
                 barcode: product.barcode || '',
                 categoryId: product.categoryId || '',
                 subCategoryId: product.subCategoryId || '',
+                subSubCategoryId: (product as any).subSubCategoryId || '',
                 branches: product.branches?.map((b: any) => typeof b === 'string' ? b : b.id) || [],
                 branchPricing: (product.branchPricing || []).map((p) => ({
                     ...p,
@@ -103,9 +107,15 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
                 ...prev,
                 [field]: value,
                 subCategoryId: '', // This correctly resets sub-category when category changes
+                subSubCategoryId: '', // Reset sub-sub-category when category changes
                 specifications: {}, // Clear specifications when category changes
             }));
         } else if (field === 'subCategoryId') {
+            setFormData(prev => ({
+                ...prev,
+                [field]: value,
+                subSubCategoryId: '', // Reset sub-sub-category when sub-category changes
+            }));
             // When subcategory changes, handle specifications based on the new subcategory type
             const newSubCategory = subCategoriesData?.find(sub => sub.id === value);
             let newSpecifications = {};
@@ -124,7 +134,6 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
 
             setFormData(prev => ({
                 ...prev,
-                [field]: value,
                 specifications: newSpecifications,
             }));
         } else {
@@ -311,6 +320,7 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
             barcode: formData.barcode || undefined,
             categoryId: formData.categoryId,
             subCategoryId: formData.subCategoryId || undefined,
+            subSubCategoryId: formData.subSubCategoryId || undefined,
             branches: formData.branches || [],
             branchPricing: formData.branchPricing || [],
             images: formData.images || [],
@@ -535,6 +545,28 @@ export default function ProductFormPage({ product, onSuccess, onCancel, mode }: 
                         )}
                     </div>
 
+                    <div className="form-group">
+                        <label className="form-label">الفئة الفرعية الفرعية</label>
+                        <select
+                            value={formData.subSubCategoryId || ''}
+                            onChange={(e) => handleInputChange('subSubCategoryId', e.target.value)}
+                            className="select-field"
+                            disabled={!formData.subCategoryId}
+                        >
+                            <option value="">اختر الفئة الفرعية الفرعية (اختياري)</option>
+                            {subSubCategoriesData?.map((subSubCategory: SubSubCategory) => (
+                                <option key={subSubCategory.id} value={subSubCategory.id}>
+                                    {subSubCategory.name}
+                                </option>
+                            ))}
+                        </select>
+                        {!formData.subCategoryId && (
+                            <p className="text-xs text-gray-500 mt-1">اختر الفئة الفرعية أولاً</p>
+                        )}
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="form-group">
                         <label className="form-label">الحالة</label>
                         <select

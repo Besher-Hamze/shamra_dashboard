@@ -235,6 +235,8 @@ export interface Product {
     category?: Category;
     subCategoryId?: string;
     subCategory?: SubCategory;
+    subSubCategoryId?: string;
+    subSubCategory?: SubSubCategory;
     branches: string[]; // Array of branch IDs
     branchDetails?: Branch[]; // Populated branch details
     branchPricing?: BranchPricing[]; // Branch-specific pricing
@@ -258,6 +260,7 @@ export interface CreateProductData {
     barcode?: string;
     categoryId: string;
     subCategoryId?: string;
+    subSubCategoryId?: string;
     branches?: string[];
     branchPricing?: BranchPricing[];
     images?: string[];
