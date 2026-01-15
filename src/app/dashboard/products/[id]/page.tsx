@@ -331,6 +331,12 @@ export default function ProductDetailsPage() {
                                     <p className="mt-1 text-gray-900">{product.subCategory.name}</p>
                                 </div>
                             )}
+                            {product.subSubCategory && (
+                                <div>
+                                    <label className="text-sm font-medium text-gray-500">الفئة الفرعية الفرعية</label>
+                                    <p className="mt-1 text-gray-900">{product.subSubCategory.name}</p>
+                                </div>
+                            )}   
                             {product.branchDetails && product.branchDetails.length > 0 && (
                                 <div>
                                     <label className="text-sm font-medium text-gray-500">الفروع المتاحة</label>

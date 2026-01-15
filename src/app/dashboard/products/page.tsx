@@ -352,8 +352,14 @@ export default function ProductsPage() {
                                                 </div>
                                             </TableCell>
                                             <TableCell>
-                                                <span className="text-sm text-gray-900">
-                                                    {product.category?.name || '-'}
+                                                <span className="text-sm text-gray-900 flex flex-col">
+                                                    <span>{product.category?.name || '-'}</span>
+                                                    {product.subCategory?.name && (
+                                                        <span className="pl-2">↳ {product.subCategory.name}</span>
+                                                    )}
+                                                    {product.subSubCategory?.name && (
+                                                        <span className="pl-4">↳ {product.subSubCategory.name}</span>
+                                                    )}
                                                 </span>
                                             </TableCell>
                                             <TableCell>
