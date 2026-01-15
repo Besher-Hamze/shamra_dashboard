@@ -197,6 +197,7 @@ class ApiService {
         if (data.barcode) formData.append('barcode', data.barcode);
         if (data.categoryId) formData.append('categoryId', data.categoryId);
         if (data.subCategoryId) formData.append('subCategoryId', data.subCategoryId);
+        if (data.subSubCategoryId) formData.append('subSubCategoryId', data.subSubCategoryId);
         if (data.branches && data.branches.length > 0) formData.append('branches', JSON.stringify(data.branches));
         if (data.branchPricing && data.branchPricing.length > 0) formData.append('branchPricing', JSON.stringify(data.branchPricing));
         if (data.brand) formData.append('brand', data.brand);
@@ -240,6 +241,7 @@ class ApiService {
         if (data.barcode !== undefined) formData.append('barcode', data.barcode || '');
         if (data.categoryId) formData.append('categoryId', data.categoryId);
         if (data.subCategoryId !== undefined) formData.append('subCategoryId', data.subCategoryId || '');
+        if (data.subSubCategoryId !== undefined) formData.append('subSubCategoryId', data.subSubCategoryId || '');
         if (data.branches !== undefined) {
             formData.append('branches', data.branches && data.branches.length > 0 ? JSON.stringify(data.branches) : '[]');
         }
